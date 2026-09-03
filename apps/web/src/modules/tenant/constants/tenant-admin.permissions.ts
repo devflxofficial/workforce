@@ -20,4 +20,8 @@ export const TENANT_ADMIN_PERMISSIONS = {
   SESSION_READ: 'read:session:tenant',
   SESSION_REVOKE: 'revoke:session:tenant',
   AUDIT_READ: 'read:audit_event:tenant',
+  ROLE_ASSIGNMENT_READ: 'read:role_assignment:tenant',
+  ROLE_ASSIGNMENT_MANAGE: 'manage:role_assignment:tenant',
+  API_CLIENT_READ: 'read:api_client:tenant',
+  API_CLIENT_MANAGE: 'manage:api_client:tenant',
 } as const;

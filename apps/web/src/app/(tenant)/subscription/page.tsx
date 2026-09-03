@@ -1,7 +1,5 @@
-import { redirect } from 'next/navigation';
-import { ROUTES } from '../../../constants/routes.constants';
+import { SubscriptionPageClient } from '../../../modules/tenant/components/subscription-page-client';
 
-/** SCR-SUB-01 — subscription lives under settings; top-level nav aliases here. */
-export default function SubscriptionAliasPage() {
-  redirect(ROUTES.TENANT.SETTINGS_SUBSCRIPTION);
+export default function SubscriptionPage() {
+  return <SubscriptionPageClient />;
 }

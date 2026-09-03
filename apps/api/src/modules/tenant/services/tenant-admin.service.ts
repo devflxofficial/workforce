@@ -8,6 +8,14 @@ import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { AppException } from '../../../common/exceptions/app.exception';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
+import {
+  ENTITLEMENT_TO_COMPARISON_KEY,
+  PLAN_COMPARISON_FEATURE_KEYS,
+  type PlanComparisonFeatureKey,
+} from '../../../common/constants/plan-comparison.constants';
+import { MESSAGE_KEYS } from '../../../common/messages/message-keys.constants';
+import { MessageCatalogueService } from '../../../common/messages/message-catalogue.service';
+import { RealtimeService } from '../../../realtime/realtime.service';
 import { AuditActorType, AuditEventSeverity } from '../../../common/enums/platform.enum';
 import { TenantAdminRepository } from '../repositories/tenant-admin.repository';
 import type {
@@ -22,8 +30,7 @@ import type {
   UpdateTenantSecurityPolicyDto,
 } from '../dto/tenant-admin.dto';
 
-const HEX_CONTRAST_WARNING =
-  'Selected colours may not meet WCAG contrast guidance; review before publishing.';
+const CONTRAST_WARNING_KEY = MESSAGE_KEYS.TENANT_CONTRAST_WARNING;
 
 function parseStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -64,6 +71,8 @@ export class TenantAdminService {
   constructor(
     private readonly repo: TenantAdminRepository,
     private readonly prisma: PrismaService,
+    private readonly messages: MessageCatalogueService,
+    private readonly realtime: RealtimeService,
     config: ConfigService,
   ) {
     this.uploadDir = config.get<string>('UPLOAD_STORAGE_PATH') ?? join(process.cwd(), 'storage', 'uploads');
@@ -73,12 +82,40 @@ export class TenantAdminService {
     ).filter((m) => m.startsWith('image/'));
   }
 
+  private emitTenantChange(tenantId: string, type: string, correlationId?: string): void {
+    this.realtime.emit({ tenantId, type, resource: 'tenant-admin', correlationId });
+  }
+
+  private blockedPayload(key: string): { messageKey: string; message: string } {
+    return this.messages.messagePayload(key);
+  }
+
+  private setupActionKey(stepKey: string, status: string): string | null {
+    if (status === 'unavailable') return null;
+    if (status === 'complete') return 'review';
+    if (
+      stepKey === 'attendance_policy' ||
+      stepKey === 'leave_policy' ||
+      stepKey === 'payroll_settings' ||
+      stepKey === 'notifications' ||
+      stepKey === 'integration_setup'
+    ) {
+      return 'configure';
+    }
+    if (stepKey === 'employee_import') return 'import';
+    if (stepKey === 'validation') return 'validate';
+    if (stepKey === 'go_live_readiness') return 'review';
+    if (stepKey === 'parallel_payroll') return 'review';
+    if (stepKey === 'roles_administrators') return 'setup';
+    return 'setup';
+  }
+
   async getProfile(tenantId: string): Promise<TenantProfileResponseDto> {
     const tenant = await this.repo.findTenant(tenantId);
     if (!tenant) {
       throw new AppException({
         code: ERROR_CODES.TENANT_NOT_FOUND,
-        message: 'Tenant not found.',
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_NOT_FOUND),
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
@@ -167,7 +204,13 @@ export class TenantAdminService {
       });
     });
 
-    return this.getProfile(tenantId);
+    this.emitTenantChange(tenantId, 'tenant.profile.updated', correlationId);
+    const profile = await this.getProfile(tenantId);
+    return {
+      ...profile,
+      message: this.messages.resolve(MESSAGE_KEYS.TENANT_PROFILE_UPDATED),
+      messageKey: MESSAGE_KEYS.TENANT_PROFILE_UPDATED,
+    } as TenantProfileResponseDto & { message: string; messageKey: string };
   }
 
   async getBranding(tenantId: string): Promise<TenantBrandingResponseDto> {
@@ -217,7 +260,13 @@ export class TenantAdminService {
       return updated;
     });
 
-    return this.toBrandingDto(tenantId, row);
+    this.emitTenantChange(tenantId, 'tenant.branding.updated', correlationId);
+    const brandingDto = this.toBrandingDto(tenantId, row);
+    return {
+      ...brandingDto,
+      message: this.messages.resolve(MESSAGE_KEYS.TENANT_BRANDING_UPDATED),
+      messageKey: MESSAGE_KEYS.TENANT_BRANDING_UPDATED,
+    } as TenantBrandingResponseDto & { message: string; messageKey: string };
   }
 
   async uploadLogo(
@@ -230,21 +279,21 @@ export class TenantAdminService {
     if (!file) {
       throw new AppException({
         code: ERROR_CODES.INVALID_UPLOAD,
-        message: 'A logo file is required.',
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_UPLOAD_INVALID),
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
     if (!this.allowedMimes.includes(file.mimetype)) {
       throw new AppException({
         code: ERROR_CODES.INVALID_UPLOAD,
-        message: 'Unsupported image type. Use JPEG, PNG, or WebP.',
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_UPLOAD_INVALID),
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
     if (file.size > this.maxFileSize) {
       throw new AppException({
         code: ERROR_CODES.INVALID_UPLOAD,
-        message: 'Image exceeds the maximum allowed size.',
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_UPLOAD_TOO_LARGE),
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
@@ -272,7 +321,7 @@ export class TenantAdminService {
     if (!tenant) {
       throw new AppException({
         code: ERROR_CODES.TENANT_NOT_FOUND,
-        message: 'Tenant not found.',
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_NOT_FOUND),
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
@@ -341,7 +390,13 @@ export class TenantAdminService {
       });
     });
 
-    return this.getRegional(tenantId);
+    this.emitTenantChange(tenantId, 'tenant.regional.updated', correlationId);
+    const regional = await this.getRegional(tenantId);
+    return {
+      ...regional,
+      message: this.messages.resolve(MESSAGE_KEYS.TENANT_REGIONAL_UPDATED),
+      messageKey: MESSAGE_KEYS.TENANT_REGIONAL_UPDATED,
+    } as TenantRegionalResponseDto & { message: string; messageKey: string };
   }
 
   async getModules(tenantId: string) {
@@ -366,11 +421,11 @@ export class TenantAdminService {
       { key: 'documents', label: 'Documents & Onboarding', description: 'Templates and onboarding journeys', available: true },
       { key: 'attendance', label: 'Attendance', description: 'Time capture and policies', available: true },
       { key: 'shifts', label: 'Shifts & Rosters', description: 'Shift templates and roster publishing', available: true },
-      { key: 'leave', label: 'Leave', description: 'Leave policies and requests', available: false },
-      { key: 'payroll', label: 'Payroll', description: 'Payroll runs and payslips', available: false },
-      { key: 'approvals', label: 'Approvals', description: 'Workflow engine', available: false },
-      { key: 'reports', label: 'Reports', description: 'Dashboards and exports', available: false },
-      { key: 'integrations', label: 'Integrations', description: 'Connectors and API credentials', available: false },
+      { key: 'leave', label: 'Leave', description: 'Leave policies and requests', available: true },
+      { key: 'payroll', label: 'Payroll', description: 'Payroll runs and payslips', available: true },
+      { key: 'approvals', label: 'Approvals', description: 'Workflow engine', available: true },
+      { key: 'reports', label: 'Reports', description: 'Dashboards and exports', available: true },
+      { key: 'integrations', label: 'Integrations', description: 'Connectors and API credentials', available: true },
       { key: 'notifications', label: 'Notifications', description: 'Templates and channels', available: false },
     ];
 
@@ -402,19 +457,25 @@ export class TenantAdminService {
   }
 
   async getSetupStatus(tenantId: string) {
-    const [tenant, counts, branding, settings] = await Promise.all([
+    const [tenant, counts, branding, settings, securityPolicy, defaultOwner, subscription] = await Promise.all([
       this.repo.findTenant(tenantId),
       this.repo.countSetupSignals(tenantId),
       this.repo.findBranding(tenantId),
       this.repo.findSettings(tenantId),
+      this.repo.findSecurityPolicy(tenantId),
+      this.resolveDefaultSetupOwner(tenantId),
+      this.repo.findActiveSubscription(tenantId),
     ]);
     if (!tenant) {
       throw new AppException({
         code: ERROR_CODES.TENANT_NOT_FOUND,
-        message: 'Tenant not found.',
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_NOT_FOUND),
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
+
+    const ownerMap = this.parseSetupOwners(settings?.setupStepOwners);
+    const ownerNames = await this.resolveOwnerDisplayNames(ownerMap, defaultOwner);
 
     const profileComplete = Boolean(
       tenant.displayName &&
@@ -422,26 +483,49 @@ export class TenantAdminService {
         tenant.countryCode &&
         (settings?.contactEmail || settings?.registrationNumber),
     );
-    const brandingComplete = Boolean(branding?.logoUrl || branding?.primaryColor);
     const orgComplete = counts.legalEntities > 0 && (counts.branches > 0 || counts.departments > 0);
     const locationsComplete = counts.branches > 0;
     const adminsComplete = counts.admins > 0;
+    const rolesInProgress = !adminsComplete && counts.pendingInvites > 0;
     const attendanceComplete = counts.attendancePolicies > 0;
+    const leaveComplete = counts.leaveTypes > 0;
+    const payrollComplete = Boolean(settings?.payrollMonthConfig) || counts.payrollGroups > 0;
     const employeesComplete = counts.employees > 0;
+    const notificationsComplete = Boolean(securityPolicy);
+    const integrationsComplete = counts.activeIntegrations > 0;
+    const policiesConfigured = counts.attendancePolicies + counts.leaveTypes;
+    const policyTarget = 5;
 
-    const steps = [
+    const parallelPrereqs = {
+      attendanceLocked: attendanceComplete,
+      payrollConfigured: payrollComplete,
+      employeeData: employeesComplete,
+      payrollGroupSetup: counts.payrollGroups > 0,
+    };
+    const parallelComplete =
+      parallelPrereqs.attendanceLocked &&
+      parallelPrereqs.payrollConfigured &&
+      parallelPrereqs.employeeData &&
+      parallelPrereqs.payrollGroupSetup;
+
+    const policiesOk = attendanceComplete && leaveComplete;
+    const validationComplete = profileComplete && orgComplete && adminsComplete && policiesOk;
+    const goLiveComplete =
+      validationComplete && attendanceComplete && parallelComplete && integrationsComplete;
+
+    const rawSteps: Array<{
+      key: string;
+      required: boolean;
+      status: string;
+      href: string | null;
+      blockedReason: { messageKey: string; message: string } | null;
+      requirements?: string[];
+    }> = [
       {
         key: 'company_profile',
         required: true,
         status: profileComplete ? 'complete' : 'incomplete',
         href: '/settings/company',
-        blockedReason: null as string | null,
-      },
-      {
-        key: 'branding',
-        required: false,
-        status: brandingComplete ? 'complete' : 'incomplete',
-        href: '/settings/branding',
         blockedReason: null,
       },
       {
@@ -461,7 +545,7 @@ export class TenantAdminService {
       {
         key: 'roles_administrators',
         required: true,
-        status: adminsComplete ? 'complete' : 'incomplete',
+        status: adminsComplete ? 'complete' : rolesInProgress ? 'in_progress' : 'incomplete',
         href: '/settings/users',
         blockedReason: null,
       },
@@ -474,57 +558,82 @@ export class TenantAdminService {
       },
       {
         key: 'leave_policy',
-        required: false,
-        status: 'unavailable',
-        href: null,
-        blockedReason: 'Leave module is not yet available for this tenant.',
+        required: true,
+        status: leaveComplete ? 'complete' : 'incomplete',
+        href: '/leave/types',
+        blockedReason: null,
       },
       {
         key: 'payroll_settings',
-        required: false,
-        status: 'unavailable',
-        href: null,
-        blockedReason: 'Payroll module is not yet available for this tenant.',
+        required: true,
+        status: payrollComplete ? 'complete' : 'incomplete',
+        href: '/settings/payroll-calendar',
+        blockedReason: null,
       },
       {
         key: 'employee_import',
-        required: false,
+        required: true,
         status: employeesComplete ? 'complete' : 'incomplete',
-        href: '/employees',
+        href: '/employees/import',
         blockedReason: null,
       },
       {
         key: 'notifications',
         required: false,
-        status: 'unavailable',
-        href: null,
-        blockedReason: 'Notification templates are not yet available.',
+        status: notificationsComplete ? 'complete' : 'incomplete',
+        href: '/settings/security',
+        blockedReason: null,
       },
       {
         key: 'integration_setup',
         required: false,
-        status: 'unavailable',
-        href: null,
-        blockedReason: 'Integrations are not yet available.',
+        status: integrationsComplete ? 'complete' : 'incomplete',
+        href: '/integrations',
+        blockedReason: null,
+      },
+      {
+        key: 'parallel_payroll',
+        required: true,
+        status: parallelComplete ? 'complete' : 'incomplete',
+        href: '/payroll',
+        blockedReason: null,
+        requirements: [
+          parallelPrereqs.attendanceLocked ? 'attendance_locked' : 'attendance_pending',
+          parallelPrereqs.payrollConfigured ? 'payroll_configured' : 'payroll_pending',
+          parallelPrereqs.employeeData ? 'employee_data' : 'employee_pending',
+          parallelPrereqs.payrollGroupSetup ? 'payroll_group' : 'payroll_group_pending',
+        ],
       },
       {
         key: 'validation',
         required: true,
-        status: profileComplete && orgComplete && adminsComplete ? 'complete' : 'incomplete',
+        status: validationComplete ? 'complete' : policiesOk ? 'incomplete' : 'blocked',
         href: '/settings',
-        blockedReason: null,
+        blockedReason: policiesOk ? null : this.blockedPayload(MESSAGE_KEYS.SETUP_BLOCKED_POLICIES),
       },
       {
         key: 'go_live_readiness',
         required: true,
-        status:
-          profileComplete && orgComplete && adminsComplete && attendanceComplete
-            ? 'complete'
-            : 'incomplete',
+        status: goLiveComplete ? 'complete' : validationComplete ? 'incomplete' : 'blocked',
         href: '/dashboard',
-        blockedReason: null,
+        blockedReason: validationComplete
+          ? null
+          : this.blockedPayload(MESSAGE_KEYS.SETUP_BLOCKED_REQUIREMENTS),
       },
-    ] as const;
+    ];
+
+    const steps = rawSteps.map((s, index) => ({
+      sequence: index + 1,
+      key: s.key,
+      required: s.required,
+      status: s.status,
+      href: s.href,
+      blockedReason: s.blockedReason,
+      requirements: s.requirements ?? [],
+      actionKey: this.setupActionKey(s.key, s.status),
+      ownerUserId: ownerMap[s.key] ?? defaultOwner?.userId ?? null,
+      ownerDisplayName: ownerNames[s.key] ?? defaultOwner?.displayName ?? '—',
+    }));
 
     const actionable = steps.filter((s) => s.status !== 'unavailable');
     const completed = actionable.filter((s) => s.status === 'complete').length;
@@ -532,30 +641,164 @@ export class TenantAdminService {
       actionable.length === 0 ? 0 : Math.round((completed / actionable.length) * 100);
     const requiredIncomplete = steps.filter((s) => s.required && s.status !== 'complete');
     const goLiveReady = requiredIncomplete.length === 0;
+    const nextIncomplete = steps.find((s) => s.status !== 'complete' && s.href && s.status !== 'blocked');
+    const seatLimit = tenant.seatLimit ?? null;
+    const activeEmployees = counts.employees;
+    const seatPercent =
+      seatLimit != null && seatLimit > 0 ? Math.round((activeEmployees / seatLimit) * 100) : null;
+
+    const trialExpired =
+      (subscription?.status === 'TRIAL' || subscription?.status === 'TRIALING') &&
+      subscription.trialEndsAt != null &&
+      subscription.trialEndsAt.getTime() < Date.now();
 
     return {
       percentComplete,
       goLiveReady,
       completed,
       total: actionable.length,
+      trialExpired,
+      supportIntervention: false,
       steps,
+      summary: {
+        seatUsage: {
+          active: activeEmployees,
+          limit: seatLimit,
+          percent: seatPercent,
+        },
+        policyCount: policiesConfigured,
+        policyTarget,
+        readinessCount: completed,
+        readinessTarget: steps.length,
+        remainingCount: steps.length - completed,
+        nextStepKey: nextIncomplete?.key ?? null,
+        nextStepHref: nextIncomplete?.href ?? null,
+        nextStepLabel: nextIncomplete?.key ?? null,
+      },
+      implementationCalendar: this.buildImplementationCalendar(steps),
       categories: [
         { key: 'company', href: '/settings/company', complete: profileComplete },
         { key: 'organisation', href: '/organisation', complete: orgComplete },
         { key: 'users_roles', href: '/settings/users', complete: adminsComplete },
         { key: 'attendance', href: '/attendance/policies', complete: attendanceComplete },
         { key: 'regional', href: '/settings/regional', complete: Boolean(settings?.dateFormat) },
-        { key: 'branding', href: '/settings/branding', complete: brandingComplete },
+        { key: 'branding', href: '/settings/branding', complete: Boolean(branding?.logoUrl || branding?.primaryColor) },
         { key: 'modules', href: '/settings/modules', complete: true },
-        { key: 'security', href: '/settings/security', complete: Boolean(await this.repo.findSecurityPolicy(tenantId)) },
-        { key: 'subscription', href: '/settings/subscription', complete: Boolean(tenant.planId || tenant.planKey) },
-        { key: 'leave', href: null, complete: false, comingSoon: true },
-        { key: 'payroll', href: null, complete: false, comingSoon: true },
-        { key: 'workflows', href: null, complete: false, comingSoon: true },
-        { key: 'notifications', href: null, complete: false, comingSoon: true },
-        { key: 'integrations', href: null, complete: false, comingSoon: true },
+        { key: 'security', href: '/settings/security', complete: Boolean(securityPolicy) },
+        { key: 'subscription', href: '/subscription', complete: Boolean(tenant.planId || tenant.planKey) },
+        { key: 'leave', href: '/leave/types', complete: leaveComplete },
+        { key: 'payroll', href: '/settings/payroll-calendar', complete: payrollComplete },
+        { key: 'workflows', href: '/approvals/workflows', complete: false },
+        { key: 'notifications', href: '/settings/security', complete: notificationsComplete },
+        { key: 'integrations', href: '/integrations', complete: integrationsComplete },
       ],
     };
+  }
+
+  async assignSetupStepOwners(
+    tenantId: string,
+    assignments: Record<string, string>,
+    actorId: string,
+  ) {
+    await this.repo.updateSetupStepOwners(tenantId, assignments, actorId);
+    return this.getSetupStatus(tenantId);
+  }
+
+  private parseSetupOwners(raw: unknown): Record<string, string> {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof v === 'string' && v) out[k] = v;
+    }
+    return out;
+  }
+
+  private async resolveDefaultSetupOwner(tenantId: string) {
+    const assignment = await this.prisma.roleAssignment.findFirst({
+      where: {
+        tenantId,
+        role: { name: { equals: 'Tenant Admin', mode: 'insensitive' } },
+      },
+      include: { user: { select: { id: true, displayName: true, displayNameLegacy: true } } },
+      orderBy: { grantedAt: 'asc' },
+    });
+    if (!assignment?.user) return null;
+    return {
+      userId: assignment.user.id,
+      displayName:
+        assignment.user.displayName ??
+        assignment.user.displayNameLegacy ??
+        'Tenant Admin',
+    };
+  }
+
+  private async resolveOwnerDisplayNames(
+    ownerMap: Record<string, string>,
+    defaultOwner: { userId: string; displayName: string } | null,
+  ): Promise<Record<string, string>> {
+    const ids = [...new Set(Object.values(ownerMap))];
+    if (defaultOwner?.userId) ids.push(defaultOwner.userId);
+    const users = ids.length
+      ? await this.prisma.appUser.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, displayName: true, displayNameLegacy: true },
+        })
+      : [];
+    const byId = new Map(
+      users.map((u) => [
+        u.id,
+        u.displayName ?? u.displayNameLegacy ?? 'User',
+      ]),
+    );
+    const names: Record<string, string> = {};
+    for (const [stepKey, userId] of Object.entries(ownerMap)) {
+      names[stepKey] = byId.get(userId) ?? defaultOwner?.displayName ?? '—';
+    }
+    return names;
+  }
+
+  private buildImplementationCalendar(
+    steps: Array<{ key: string; status: string }>,
+  ) {
+    const byKey = new Map(steps.map((s) => [s.key, s.status]));
+    const weeks = [
+      {
+        key: 'week1',
+        labelKey: 'week1',
+        stepKeys: ['company_profile', 'organisation', 'locations'],
+      },
+      {
+        key: 'week2',
+        labelKey: 'week2',
+        stepKeys: ['attendance_policy', 'leave_policy', 'payroll_settings'],
+      },
+      {
+        key: 'week3',
+        labelKey: 'week3',
+        stepKeys: ['employee_import', 'roles_administrators', 'notifications'],
+      },
+      {
+        key: 'week4',
+        labelKey: 'week4',
+        stepKeys: [
+          'integration_setup',
+          'parallel_payroll',
+          'validation',
+          'go_live_readiness',
+        ],
+      },
+    ];
+    return weeks.map((week) => {
+      const statuses = week.stepKeys.map((k) => byKey.get(k) ?? 'incomplete');
+      const done = statuses.filter((s) => s === 'complete').length;
+      const percent = week.stepKeys.length === 0 ? 0 : Math.round((done / week.stepKeys.length) * 100);
+      return {
+        ...week,
+        percent,
+        stepKeys: week.stepKeys,
+        stepStatuses: Object.fromEntries(week.stepKeys.map((k, i) => [k, statuses[i]])),
+      };
+    });
   }
 
   async getSubscription(tenantId: string) {
@@ -563,7 +806,7 @@ export class TenantAdminService {
     if (!tenant) {
       throw new AppException({
         code: ERROR_CODES.TENANT_NOT_FOUND,
-        message: 'Tenant not found.',
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_NOT_FOUND),
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
@@ -590,7 +833,7 @@ export class TenantAdminService {
     if (!tenant) {
       throw new AppException({
         code: ERROR_CODES.TENANT_NOT_FOUND,
-        message: 'Tenant not found.',
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_NOT_FOUND),
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
@@ -613,11 +856,89 @@ export class TenantAdminService {
       seatLimit,
       storageUsedBytes: snapshot ? Number(snapshot.storageUsedBytes) : 0,
       apiCallsMonth: snapshot?.apiCallsMonth ?? 0,
+      integrationEventVolume: snapshot?.integrationEventVolume ?? 0,
+      exportVolume: snapshot?.exportVolume ?? 0,
       warnings: {
         approachingSeatLimit: approaching && !reached,
         seatLimitReached: reached,
+        overagePolicyKey: reached ? 'tenant.usage.overage.reached' : null,
       },
     };
+  }
+
+  async comparePlans(tenantId: string) {
+    const tenant = await this.repo.findTenant(tenantId);
+    if (!tenant) {
+      throw new AppException({
+        code: ERROR_CODES.TENANT_NOT_FOUND,
+        message: this.messages.resolve(MESSAGE_KEYS.TENANT_NOT_FOUND),
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    const plans = await this.repo.findPlansWithEntitlements();
+    const currentPlanId = tenant.planId ?? null;
+
+    return {
+      currentPlanId,
+      currentPlanCode: tenant.plan?.code ?? tenant.planKey ?? null,
+      features: PLAN_COMPARISON_FEATURE_KEYS,
+      plans: plans.map((plan) => ({
+        id: plan.id,
+        code: plan.code,
+        name: plan.name,
+        description: plan.description,
+        isCurrent: plan.id === currentPlanId,
+        featureStates: this.buildPlanFeatureStates(plan.planEntitlements),
+      })),
+    };
+  }
+
+  private buildPlanFeatureStates(
+    planEntitlements: Array<{
+      defaultValue: unknown;
+      entitlement: { code: string; dataType: string };
+    }>,
+  ): Record<PlanComparisonFeatureKey, string> {
+    const entitlementMap = new Map<string, unknown>();
+    for (const pe of planEntitlements) {
+      entitlementMap.set(pe.entitlement.code, pe.defaultValue);
+    }
+
+    const states = {} as Record<PlanComparisonFeatureKey, string>;
+    for (const featureKey of PLAN_COMPARISON_FEATURE_KEYS) {
+      const entitlementCode = Object.entries(ENTITLEMENT_TO_COMPARISON_KEY).find(
+        ([, v]) => v === featureKey,
+      )?.[0];
+      if (!entitlementCode) {
+        states[featureKey] = 'unavailable';
+        continue;
+      }
+      const raw = entitlementMap.get(entitlementCode);
+      if (raw === undefined || raw === null) {
+        states[featureKey] = 'unavailable';
+        continue;
+      }
+      if (typeof raw === 'boolean') {
+        states[featureKey] = raw ? 'included' : 'unavailable';
+        continue;
+      }
+      if (typeof raw === 'number') {
+        states[featureKey] = raw > 0 ? 'included' : 'limited';
+        continue;
+      }
+      if (typeof raw === 'string') {
+        const normalized = raw.toLowerCase();
+        if (normalized === 'included' || normalized === 'optional' || normalized === 'limited') {
+          states[featureKey] = normalized;
+        } else {
+          states[featureKey] = raw ? 'included' : 'unavailable';
+        }
+        continue;
+      }
+      states[featureKey] = 'included';
+    }
+    return states;
   }
 
   async createUpgradeRequest(
@@ -629,7 +950,7 @@ export class TenantAdminService {
     if (!dto.requestedPlanId && !dto.requestedPlanKey) {
       throw new AppException({
         code: ERROR_CODES.VALIDATION_FAILED,
-        message: 'Provide requestedPlanId or requestedPlanKey.',
+        message: this.messages.resolve(MESSAGE_KEYS.UPGRADE_PLAN_REQUIRED),
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
@@ -640,6 +961,13 @@ export class TenantAdminService {
           tenantId,
           requestedPlanId: dto.requestedPlanId,
           requestedPlanKey: dto.requestedPlanKey,
+          additionalSeats: dto.additionalSeats,
+          additionalModuleKeys: dto.additionalModuleKeys ?? undefined,
+          requestedEffectiveDate: dto.requestedEffectiveDate
+            ? new Date(dto.requestedEffectiveDate)
+            : undefined,
+          contactPersonName: dto.contactPersonName,
+          businessReason: dto.businessReason ?? dto.note,
           note: dto.note,
           billingContactEmail: dto.billingContactEmail,
           createdBy: actor.userId,
@@ -670,14 +998,25 @@ export class TenantAdminService {
       return row;
     });
 
+    this.emitTenantChange(tenantId, 'tenant.upgrade_request.created', correlationId);
+
     return {
       id: created.id,
       status: created.status,
       requestedPlanId: created.requestedPlanId,
       requestedPlanKey: created.requestedPlanKey,
+      additionalSeats: created.additionalSeats,
+      additionalModuleKeys: created.additionalModuleKeys,
+      requestedEffectiveDate: created.requestedEffectiveDate
+        ? created.requestedEffectiveDate.toISOString().slice(0, 10)
+        : null,
+      contactPersonName: created.contactPersonName,
+      businessReason: created.businessReason,
       note: created.note,
       billingContactEmail: created.billingContactEmail,
       createdAt: created.createdAt.toISOString(),
+      message: this.messages.resolve(MESSAGE_KEYS.TENANT_UPGRADE_CREATED),
+      messageKey: MESSAGE_KEYS.TENANT_UPGRADE_CREATED,
     };
   }
 
@@ -689,6 +1028,13 @@ export class TenantAdminService {
       requestedPlanId: r.requestedPlanId,
       requestedPlanKey: r.requestedPlanKey,
       planName: r.plan?.name ?? null,
+      additionalSeats: r.additionalSeats,
+      additionalModuleKeys: r.additionalModuleKeys,
+      requestedEffectiveDate: r.requestedEffectiveDate
+        ? r.requestedEffectiveDate.toISOString().slice(0, 10)
+        : null,
+      contactPersonName: r.contactPersonName,
+      businessReason: r.businessReason,
       note: r.note,
       billingContactEmail: r.billingContactEmail,
       createdAt: r.createdAt.toISOString(),
@@ -761,7 +1107,13 @@ export class TenantAdminService {
       return row;
     });
 
-    return this.toSecurityDto(updated);
+    this.emitTenantChange(tenantId, 'tenant.security_policy.updated', correlationId);
+    const dtoResult = this.toSecurityDto(updated);
+    return {
+      ...dtoResult,
+      message: this.messages.resolve(MESSAGE_KEYS.TENANT_SECURITY_UPDATED),
+      messageKey: MESSAGE_KEYS.TENANT_SECURITY_UPDATED,
+    } as TenantSecurityPolicyResponseDto & { message: string; messageKey: string };
   }
 
   private toBrandingDto(
@@ -779,7 +1131,7 @@ export class TenantAdminService {
     const warnings: string[] = [];
     const primary = branding?.primaryColor;
     if (primary && contrastRatio(primary, '#FFFFFF') < 4.5) {
-      warnings.push(HEX_CONTRAST_WARNING);
+      warnings.push(this.messages.resolve(CONTRAST_WARNING_KEY));
     }
     return {
       tenantId,

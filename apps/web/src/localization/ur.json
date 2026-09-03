@@ -22,6 +22,7 @@
     "no": "نہیں",
     "required": "ضروری",
     "optional": "اختیاری",
+    "emptyValue": "—",
     "actions": "اقدامات",
     "skipToContent": "مرکزی مواد پر جائیں",
     "comingSoonHint": "یہ ماڈیول ابھی دستیاب نہیں ہے",
@@ -103,6 +104,19 @@
       "ssoNotConfigured": "اس ماحول کے لیے {provider} سائن ان ترتیب نہیں دیا گیا۔",
       "maintenance": "ورک فورس کلاؤڈ او ایس عارضی طور پر مینٹیننس کے لیے دستیاب نہیں ہے۔ بعد میں کوشش کریں۔",
       "ssoOnly": "اس ادارے کے لیے پاس ورڈ سائن ان بند ہے۔ اپنے ادارے کا SSO استعمال کریں۔"
+    },
+    "demoAccess": {
+      "title": "ڈیولپمنٹ ڈیمو رسائی",
+      "badge": "صرف ڈیولپمنٹ",
+      "description": "مقامی اور اسٹیجنگ UI تصدیق کے لیے۔ اصل سائن ان فلو استعمال ہوتا ہے۔",
+      "passwordRequired": "خودکار سائن ان کے لیے NEXT_PUBLIC_DEMO_LOGIN_PASSWORD مقرر کریں، یا ڈیمو پاس ورڈ دستی درج کریں۔",
+      "signInAs": "{role} کے طور پر سائن ان",
+      "roles": {
+        "tenantAdmin": "ٹیننٹ ایڈمن",
+        "hrAdmin": "HR ایڈمن",
+        "manager": "مینیجر",
+        "employee": "ملازم"
+      }
     },
     "forgot": {
       "title": "پاس ورڈ بھول گئے",
@@ -1035,7 +1049,7 @@
       "captureDevices": "آلات",
       "captureGeofences": "جیوفینسز",
       "captureOfflineSessions": "آف لائن سیشنز",
-      "audit": "Audit",
+      "audit": "آڈٹ",
       "hrDashboard": "ایچ آر ڈیش بورڈ",
       "onboarding": "آن بورڈنگ",
       "documentsLibrary": "دستاویزات",
@@ -1052,6 +1066,23 @@
     "admin": {
       "label": "ٹینینٹ ایڈمن",
       "roleLabel": "ایچ آر ایڈمنسٹریٹر"
+    },
+    "setup": {
+      "status": {
+        "complete": "مکمل",
+        "incomplete": "زیر التوا",
+        "in_progress": "جاری",
+        "unavailable": "دستیاب نہیں",
+        "blocked": "بلاک"
+      },
+      "blocked": {
+        "leave": "چھٹی کا ماڈیول ابھی اس ٹینینٹ کے لیے دستیاب نہیں ہے۔",
+        "payroll": "پے رول ماڈیول ابھی اس ٹینینٹ کے لیے دستیاب نہیں ہے۔",
+        "notifications": "نوٹیفکیشن ٹیمپلیٹس ابھی دستیاب نہیں ہیں۔",
+        "integrations": "انضمام ابھی دستیاب نہیں ہیں۔",
+        "policies": "پالیسیاں غائب ہیں",
+        "requirements": "ضروریات غائب ہیں"
+      }
     },
     "chrome": {
       "search": {
@@ -1117,281 +1148,487 @@
       }
     },
     "settings": {
-      "title": "Settings",
-      "description": "Configure your organisation, users, branding, and security.",
+      "title": "ترتیبات",
+      "description": "اپنی تنظیم، صارفین، برانڈنگ اور سیکیورٹی ترتیب دیں۔",
       "hub": {
-        "complete": "Complete",
-        "incomplete": "Incomplete",
-        "comingSoon": "Coming soon",
-        "percent": "{percent}% configured"
+        "complete": "مکمل",
+        "incomplete": "نامکمل",
+        "comingSoon": "جلد آ رہا ہے",
+        "percent": "{percent}% ترتیب شدہ"
       },
       "categories": {
-        "company": "Company",
-        "organisation": "Organisation",
-        "users_roles": "Users and roles",
-        "attendance": "Attendance",
-        "regional": "Regional",
-        "branding": "Branding",
-        "modules": "Modules",
-        "security": "Security",
-        "subscription": "Subscription",
-        "leave": "Leave",
-        "payroll": "Payroll",
-        "workflows": "Workflows",
-        "notifications": "Notifications",
-        "integrations": "Integrations",
-        "sessions": "Active sessions",
-        "roles": "Roles and permissions"
+        "company": "کمپنی",
+        "organisation": "تنظیم",
+        "users_roles": "صارفین اور کردار",
+        "attendance": "حاضری",
+        "regional": "علاقائی",
+        "branding": "برانڈنگ",
+        "modules": "ماڈیولز",
+        "security": "سیکیورٹی",
+        "subscription": "سبسکرپشن",
+        "leave": "چھٹی",
+        "payroll": "پے رول",
+        "workflows": "ورک فلو",
+        "notifications": "اطلاعات",
+        "integrations": "انضمام",
+        "sessions": "فعال سیشنز",
+        "roles": "کردار اور اجازتیں",
+        "customFields": "حسب ضرورت فیلڈز",
+        "holidayCalendar": "تعطیلات کیلنڈر",
+        "payrollCalendar": "پے رول کیلنڈر"
       },
       "company": {
-        "title": "Company profile",
-        "description": "Legal and display details for your organisation.",
-        "save": "Save profile",
-        "saved": "Company profile saved."
+        "title": "کمپنی پروفائل",
+        "description": "آپ کی تنظیم کی قانونی اور ظاہری تفصیلات۔",
+        "save": "پروفائل محفوظ کریں",
+        "saved": "کمپنی پروفائل محفوظ ہو گئی۔"
       },
       "branding": {
-        "title": "Branding",
-        "description": "Logos and colours within permitted limits.",
-        "save": "Save branding",
-        "saved": "Branding updated.",
-        "previewLogin": "Login preview",
-        "previewEmail": "Email header preview",
-        "previewPayslip": "Payslip header preview",
-        "contrastWarning": "Contrast warning",
-        "uploads": "Logo uploads",
-        "uploading": "Uploading logo..."
+        "title": "برانڈنگ",
+        "description": "مقررہ حدود کے اندر لوگوز اور رنگ۔",
+        "save": "برانڈنگ محفوظ کریں",
+        "saved": "برانڈنگ اپ ڈیٹ ہو گئی۔",
+        "previewLogin": "لاگ ان پیش نظارہ",
+        "previewEmail": "ای میل ہیڈر پیش نظارہ",
+        "previewPayslip": "پے سلپ ہیڈر پیش نظارہ",
+        "contrastWarning": "کنٹراسٹ انتباہ",
+        "uploads": "لوگو اپ لوڈز",
+        "uploading": "لوگو اپ لوڈ ہو رہا ہے...",
+        "defaultAppName": "Workforce OS",
+        "fields": {
+          "logoUrl": "لوگو URL",
+          "loginLogoUrl": "لاگ ان لوگو URL",
+          "faviconUrl": "فیویکن URL",
+          "primaryColor": "بنیادی رنگ",
+          "secondaryColor": "ثانوی رنگ",
+          "applicationName": "ایپلیکیشن کا نام",
+          "emailSenderName": "ای میل بھیجنے والے کا نام"
+        },
+        "logos": {
+          "logo": "لوگو",
+          "loginLogo": "لاگ ان لوگو",
+          "favicon": "فیویکن"
+        }
       },
       "regional": {
-        "title": "Language and regional settings",
-        "description": "Locale, formats, and working week.",
-        "save": "Save regional settings",
-        "saved": "Regional settings saved.",
-        "rtlPreview": "RTL preview",
-        "enabledLocales": "Enabled locales",
-        "workingWeekPattern": "Working week"
+        "title": "زبان اور علاقائی ترتیبات",
+        "description": "لوکیل، فارمیٹس اور کام کا ہفتہ۔",
+        "save": "علاقائی ترتیبات محفوظ کریں",
+        "saved": "علاقائی ترتیبات محفوظ ہو گئیں۔",
+        "rtlPreview": "RTL پیش نظارہ",
+        "rtlPreviewSample": "آپ کا ٹینینٹ مقامی ترتیبات کے ساتھ تیار ہے۔",
+        "enabledLocales": "فعال لوکیلز",
+        "workingWeekPattern": "کام کا ہفتہ",
+        "fields": {
+          "defaultLocale": "پہلے سے لوکیل",
+          "dateFormat": "تاریخ کا فارمیٹ",
+          "numberFormat": "نمبر کا فارمیٹ",
+          "currencyDisplay": "کرنسی کی ڈسپلے",
+          "defaultTimezone": "پہلے سے ٹائم زون",
+          "weekStart": "ہفتے کا آغاز دن"
+        },
+        "weekdays": {
+          "mon": "پیر",
+          "tue": "منگل",
+          "wed": "بدھ",
+          "thu": "جمعرات",
+          "fri": "جمعہ",
+          "sat": "ہفتہ",
+          "sun": "اتوار"
+        },
+        "locales": {
+          "en": "انگریزی",
+          "ur": "اردو"
+        }
       },
       "users": {
-        "title": "Tenant administrators and users",
-        "description": "Invite, deactivate, and manage access.",
-        "invite": "Invite user",
-        "resend": "Resend",
-        "revoke": "Revoke",
-        "deactivate": "Deactivate",
-        "requireReset": "Require password reset",
-        "requireMfa": "Require MFA",
-        "empty": "No users found.",
-        "invitations": "Pending invitations",
-        "detail": "User detail"
+        "title": "ٹینینٹ منتظمین اور صارفین",
+        "description": "مدعو کریں، غیر فعال کریں اور رسائی کا انتظام کریں۔",
+        "invite": "صارف کو مدعو کریں",
+        "resend": "دوبارہ بھیجیں",
+        "revoke": "منسوخ کریں",
+        "deactivate": "غیر فعال کریں",
+        "requireReset": "پاس ورڈ ری سیٹ ضروری",
+        "requireMfa": "MFA ضروری",
+        "empty": "کوئی صارف نہیں ملا۔",
+        "invitations": "زیر التوا دعوتیں",
+        "detail": "صارف کی تفصیل"
       },
       "roles": {
-        "title": "Roles and permissions",
-        "description": "View and edit the permission matrix.",
-        "create": "Create role",
-        "system": "System",
-        "custom": "Custom",
-        "assignments": "{count} users",
-        "delete": "Delete role",
-        "confirmDelete": "Delete {name}? Users assigned to this role will lose these permissions."
+        "title": "کردار اور اجازتیں",
+        "description": "اجازت میٹرکس دیکھیں اور ترمیم کریں۔",
+        "create": "کردار بنائیں",
+        "namePlaceholder": "حسب ضرورت کردار کا نام",
+        "system": "سسٹم",
+        "custom": "حسب ضرورت",
+        "assignments": "{count} صارفین",
+        "delete": "کردار حذف کریں",
+        "confirmDelete": "{name} حذف کریں؟ اس کردار پر تفویض صارفین ان اجازتیں کھو دیں گے۔"
       },
       "modules": {
-        "title": "Module settings",
-        "description": "Active, inactive, and unavailable modules.",
-        "configure": "Configure",
-        "requestUpgrade": "Request upgrade",
-        "active": "Active",
-        "inactive": "Inactive",
-        "unavailable": "Unavailable"
+        "title": "ماڈیول کی ترتیبات",
+        "description": "فعال، غیر فعال اور دستیاب نہیں ماڈیولز۔",
+        "configure": "ترتیب دیں",
+        "requestUpgrade": "اپ گریڈ کی درخواست",
+        "active": "فعال",
+        "inactive": "غیر فعال",
+        "unavailable": "دستیاب نہیں"
       },
       "security": {
-        "title": "Security settings",
-        "description": "Password, MFA, and session policy.",
-        "save": "Save security policy",
-        "saved": "Security policy saved."
+        "title": "سیکیورٹی کی ترتیبات",
+        "description": "پاس ورڈ، MFA اور سیشن پالیسی۔",
+        "save": "سیکیورٹی پالیسی محفوظ کریں",
+        "saved": "سیکیورٹی پالیسی محفوظ ہو گئی۔",
+        "passwordMinLength": "پاس ورڈ کی کم از کم لمبائی",
+        "passwordRequireUpper": "بڑے حروف ضروری",
+        "passwordRequireLower": "چھوٹے حروف ضروری",
+        "passwordRequireDigit": "ہندسہ ضروری",
+        "passwordRequireSymbol": "علامت ضروری",
+        "mfaRequiredForAdmins": "منتظمین کے لیے MFA ضروری",
+        "sessionTtlHours": "سیشن کی مدت (گھنٹے)",
+        "maxLoginAttempts": "لاگ ان کی زیادہ کوششیں",
+        "trustedEmailDomains": "قابل اعتماد ای میل ڈومینز (کوما سے الگ)"
       },
       "sessions": {
-        "title": "Active sessions",
-        "description": "Review and revoke signed-in sessions.",
-        "revoke": "End session",
-        "revokeAll": "End all sessions",
-        "empty": "No active sessions."
+        "title": "فعال سیشنز",
+        "description": "سائن ان سیشنز کا جائزہ لیں اور منسوخ کریں۔",
+        "revoke": "سیشن ختم کریں",
+        "revokeAll": "تمام سیشنز ختم کریں",
+        "empty": "کوئی فعال سیشن نہیں۔",
+        "user": "صارف",
+        "device": "ڈیوائس",
+        "signedIn": "سائن ان",
+        "lastActivity": "آخری سرگرمی",
+        "actions": "اقدامات"
       },
       "subscription": {
-        "title": "Subscription",
-        "description": "Plan, seats, and usage for your tenant.",
-        "requestUpgrade": "Request upgrade",
-        "seatLimit": "Seat limit",
-        "activeEmployees": "Active employees",
-        "storage": "Storage used",
-        "approaching": "Approaching seat limit",
-        "reached": "Seat limit reached",
-        "history": "Upgrade request history",
-        "status": "Status",
-        "plan": "Plan",
-        "createdAt": "Created",
-        "note": "Note",
-        "noHistory": "No upgrade requests yet."
+        "title": "سبسکرپشن",
+        "description": "آپ کے ٹینینٹ کے لیے منصوبہ، سیٹس اور استعمال۔",
+        "requestUpgrade": "اپ گریڈ کی درخواست",
+        "planLabel": "منصوبہ",
+        "seatLimit": "سیٹ کی حد",
+        "activeEmployees": "فعال ملازمین",
+        "invitedUsers": "مدعو صارفین",
+        "storage": "استعمال شدہ اسٹوریج",
+        "apiUsage": "API کالز (مہینہ)",
+        "integrationVolume": "انضمام کے واقعات",
+        "exportVolume": "ڈیٹا برآمد",
+        "approaching": "سیٹ کی حد قریب",
+        "reached": "سیٹ کی حد پوری",
+        "history": "اپ گریڈ کی درخواستوں کی تاریخ",
+        "status": "حالت",
+        "plan": "منصوبہ",
+        "createdAt": "تاریخ تخلیق",
+        "note": "نوٹ",
+        "noHistory": "ابھی کوئی اپ گریڈ کی درخواست نہیں۔",
+        "selectPlan": "منصوبہ منتخب کریں",
+        "billingEmail": "بلنگ رابطہ ای میل",
+        "businessReason": "کاروباری وجہ",
+        "contactPerson": "رابطہ شخص",
+        "additionalSeats": "اضافی سیٹس",
+        "effectiveDate": "مطلوبہ مؤثر تاریخ",
+        "compareTitle": "منصوبوں کا موازنہ",
+        "compareDescription": "منصوبوں اور حقوق کا موازنہ کریں۔",
+        "compareLink": "منصوبوں کا موازنہ",
+        "feature": "خصوصیت",
+        "current": "موجودہ",
+        "features": {
+          "employee_limit": "ملازمین کی حد",
+          "core_hr": "بنیادی HR",
+          "attendance": "حاضری",
+          "leave": "چھٹی",
+          "payroll": "پے رول",
+          "workflows": "ورک فلو",
+          "reports": "رپورٹیں",
+          "sso": "SSO",
+          "api": "API",
+          "support": "سپورٹ",
+          "hosting": "ہوسٹنگ"
+        },
+        "featureState": {
+          "included": "شامل",
+          "limited": "محدود",
+          "optional": "اختیاری",
+          "unavailable": "دستیاب نہیں"
+        }
       },
       "setup": {
-        "title": "Tenant setup checklist",
-        "description": "Complete required configuration before go-live.",
-        "progress": "{percent}% complete",
-        "required": "Required",
-        "optional": "Optional",
-        "blocked": "Blocked",
-        "resume": "Continue",
-        "goLiveReady": "Ready for go-live",
-        "notReady": "Setup incomplete"
+        "title": "ٹینینٹ سیٹ اپ چیک لسٹ",
+        "description": "لائیو جانے کے لیے اپنی تنظیم کی سیٹ اپ مکمل کریں۔",
+        "progress": "{percent}% مکمل",
+        "required": "ضروری",
+        "optional": "اختیاری",
+        "blocked": "بلاک",
+        "resume": "سیٹ اپ جاری رکھیں",
+        "refresh": "تازہ کریں",
+        "goLiveReady": "لائیو جانے کے لیے تیار",
+        "goLiveBanner": "تمام ضروری سیٹ اپ مراحل مکمل ہیں۔ آپ کا ٹینینٹ لائیو جانے کے لیے تیار ہے۔",
+        "notReady": "سیٹ اپ نامکمل",
+        "requiredMarker": "*",
+        "checklistHeading": "سیٹ اپ چیک لسٹ",
+        "documentation": "دستاویزات",
+        "contactSupport": "سپورٹ سے رابطہ",
+        "downloadChecklist": "چیک لسٹ ڈاؤن لوڈ کریں",
+        "downloadFilename": "tenant-setup-checklist.csv",
+        "assignOwnership": "ذمہ داری تفویض کریں",
+        "assignOwnershipTitle": "مرحلے کی ذمہ داری تفویض کریں",
+        "assignOwnershipDescription": "ہر سیٹ اپ مرحلے کے لیے ذمہ دار منتخب کریں۔",
+        "saveOwners": "تفویض محفوظ کریں",
+        "selectOwner": "ذمہ دار منتخب کریں",
+        "trialExpired": "آپ کی ٹرائل ختم ہو گئی ہے۔ سیٹ اپ جاری رکھنے کے لیے سبسکرپشن اپ گریڈ کریں۔",
+        "supportIntervention": "سپورٹ کی مدد ضروری ہے۔ آگے بڑھنے کے لیے سپورٹ سے رابطہ کریں۔",
+        "greeting": {
+          "morning": "صبح بخیر، {name}!",
+          "afternoon": "سہ پہر بخیر، {name}!",
+          "evening": "شب بخیر، {name}!"
+        },
+        "table": {
+          "number": "#",
+          "step": "مرحلہ",
+          "owner": "ذمہ دار",
+          "status": "حالت",
+          "blocker": "رکاوٹ",
+          "action": "عمل"
+        },
+        "blocker": {
+          "none": "کوئی نہیں"
+        },
+        "calendar": {
+          "title": "نفاذ کیلنڈر",
+          "week1": "ہفتہ 1: بنیاد",
+          "week2": "ہفتہ 2: پالیسیاں",
+          "week3": "ہفتہ 3: ڈیٹا اور لوگ",
+          "week4": "ہفتہ 4: توثیق اور لائیو",
+          "stepComplete": "مکمل",
+          "stepPending": "زیر التوا"
+        },
+        "requirements": {
+          "attendance_locked": "حاضری لاک ہو گئی",
+          "attendance_pending": "حاضری لاک ضروری ہے",
+          "payroll_configured": "پے رول ترتیب شدہ",
+          "payroll_pending": "پے رول کی ترتیب ضروری ہے",
+          "employee_data": "ملازمین کا ڈیٹا درآمد ہو گیا",
+          "employee_pending": "ملازمین کی درآمد ضروری ہے",
+          "payroll_group": "پے رول گروپ سیٹ اپ",
+          "payroll_group_pending": "پے رول گروپ سیٹ اپ ضروری ہے"
+        },
+        "actions": {
+          "review": "جائزہ",
+          "setup": "سیٹ اپ",
+          "configure": "ترتیب دیں",
+          "import": "درآمد",
+          "validate": "توثیق"
+        },
+        "summary": {
+          "progress": "سیٹ اپ کی پیش رفت",
+          "progressValue": "{percent}% مکمل",
+          "progressHint": "ضروری اور اختیاری مراحل",
+          "seats": "سیٹ کا استعمال",
+          "seatValueWithLimit": "{active} / {limit} سیٹس",
+          "seatValueCount": "{count} سیٹس",
+          "seatPercent": "حد کا {percent}%",
+          "policies": "پالیسیوں کی تعداد",
+          "policiesValue": "{count} / {target} ترتیب شدہ",
+          "pendingPolicies": "{count} زیر التوا",
+          "readiness": "تیاری کی تعداد",
+          "readinessValue": "{count} / {target} مکمل",
+          "readinessHint": "{total} قابل عمل مراحل میں سے",
+          "remainingSteps": "{count} باقی"
+        },
+        "support": {
+          "title": "نفاذ کی معاونت",
+          "description": "ٹینینٹ آن بورڈنگ مکمل کرنے کے لیے چیک لسٹ استعمال کریں۔",
+          "nextAction": "اگلا تجویز کردہ عمل",
+          "nextActionHint": "یہ پہلا نامکمل مرحلہ ہے جس پر آپ اب کام کر سکتے ہیں۔",
+          "goToStep": "{step} پر جائیں",
+          "settingsHub": "ترتیبات کا مرکز کھولیں",
+          "resources": "معاونت کے وسائل"
+        }
       },
       "audit": {
-        "title": "Audit log",
-        "description": "Sensitive changes within your tenant.",
-        "empty": "No audit events found."
+        "title": "آڈٹ لاگ",
+        "description": "آپ کے ٹینینٹ میں حساس تبدیلیاں۔",
+        "empty": "کوئی آڈٹ واقعہ نہیں ملا۔"
+      },
+      "accessDenied": "آپ کو یہ ترتیبات کا صفحہ دیکھنے کی اجازت نہیں ہے۔",
+      "companyFields": {
+        "displayName": "ظاہری نام",
+        "legalName": "قانونی نام",
+        "registrationNumber": "رجسٹریشن نمبر",
+        "industry": "صنعت",
+        "employeeSizeBand": "ملازمین کی تعداد",
+        "addressLine1": "پتہ لائن 1",
+        "addressLine2": "پتہ لائن 2",
+        "city": "شہر",
+        "stateProvince": "ریاست / صوبہ",
+        "postalCode": "پوسٹل کوڈ",
+        "contactEmail": "رابطہ ای میل",
+        "contactPhone": "رابطہ فون",
+        "countryCode": "ملک",
+        "baseCurrency": "کرنسی",
+        "defaultTimezone": "ٹائم زون",
+        "financialYearStart": "مالی سال کا آغاز",
+        "payrollMonthConfig": "پے رول مہینے کی ترتیب"
+      },
+      "usersTable": {
+        "name": "نام",
+        "email": "ای میل",
+        "role": "کردار",
+        "status": "حالت",
+        "lastLogin": "آخری لاگ ان",
+        "mfa": "MFA",
+        "actions": "اقدامات",
+        "search": "صارفین تلاش کریں",
+        "emailPlaceholder": "email@company.com",
+        "roleSelect": "کردار",
+        "changeRole": "کردار تبدیل کریں"
       }
     },
     "setupSteps": {
-      "company_profile": "Company profile",
-      "branding": "Branding",
-      "organisation": "Organisation structure",
-      "locations": "Locations",
-      "roles_administrators": "Roles and administrators",
-      "attendance_policy": "Attendance policy",
-      "leave_policy": "Leave policy",
-      "payroll_settings": "Payroll settings",
-      "employee_import": "Employee import",
-      "notifications": "Notifications",
-      "integration_setup": "Integration setup",
-      "validation": "Validation",
-      "go_live_readiness": "Go-live readiness"
+      "company_profile": "کمپنی پروفائل",
+      "branding": "برانڈنگ",
+      "organisation": "تنظیمی ڈھانچہ",
+      "locations": "مقامات",
+      "roles_administrators": "کردار اور منتظمین",
+      "attendance_policy": "حاضری کی پالیسی",
+      "leave_policy": "چھٹی کی پالیسی",
+      "payroll_settings": "پے رول کی ترتیبات",
+      "employee_import": "ملازمین کی درآمد",
+      "notifications": "اطلاعات",
+      "integration_setup": "انضمام کی سیٹ اپ",
+      "parallel_payroll": "متوازی پے رول",
+      "validation": "توثیق",
+      "go_live_readiness": "لائیو جانے کی تیاری"
     },
     "leave": {
       "home": {
-        "title": "Leave",
-        "description": "Manage leave requests, types, and balances.",
-        "pendingCount": "Pending requests",
-        "typesCount": "Active leave types",
+        "title": "چھٹی",
+        "description": "چھٹی کی درخواستیں، اقسام اور بیلنس کا انتظام کریں۔",
+        "pendingCount": "زیر التوا درخواستیں",
+        "typesCount": "فعال چھٹی کی اقسام",
         "links": {
-          "requests": "Leave requests",
-          "requestsHint": "Review and decide submitted leave.",
-          "types": "Leave types",
-          "typesHint": "Configure paid and unpaid leave types.",
-          "adjust": "Balance adjustments",
-          "adjustHint": "Grant or adjust employee leave balances."
+          "requests": "چھٹی کی درخواستیں",
+          "requestsHint": "جمع شدہ چھٹی کا جائزہ لیں اور فیصلہ کریں۔",
+          "types": "چھٹی کی اقسام",
+          "typesHint": "ادا شدہ اور غیر ادا شدہ چھٹی کی اقسام ترتیب دیں۔",
+          "adjust": "بیلنس کی ایڈجسٹمنٹ",
+          "adjustHint": "ملازمین کے چھٹی بیلنس دیں یا ایڈجسٹ کریں۔"
         }
       },
       "requests": {
-        "title": "Leave requests",
-        "description": "Filter and open leave requests for this tenant.",
-        "filterStatus": "Filter by status",
-        "allStatuses": "All statuses",
-        "empty": "No leave requests match the current filters."
+        "title": "چھٹی کی درخواستیں",
+        "description": "اس ٹینینٹ کی چھٹی کی درخواستیں فلٹر اور کھولیں۔",
+        "filterStatus": "حالت کے مطابق فلٹر",
+        "allStatuses": "تمام حالتیں",
+        "empty": "موجودہ فلٹرز سے کوئی چھٹی کی درخواست نہیں ملتی۔"
       },
       "detail": {
-        "title": "Leave request",
-        "description": "Review request details and approve or reject.",
-        "approve": "Approve",
-        "reject": "Reject",
-        "noActions": "No decision actions are available for this status."
+        "title": "چھٹی کی درخواست",
+        "description": "درخواست کی تفصیلات کا جائزہ لیں اور منظور یا مسترد کریں۔",
+        "approve": "منظور کریں",
+        "reject": "مسترد کریں",
+        "noActions": "اس حالت کے لیے کوئی فیصلہ کا عمل دستیاب نہیں۔"
       },
       "types": {
-        "title": "Leave types",
-        "description": "Create and edit leave types for this organisation.",
-        "create": "Create type",
-        "edit": "Edit type",
-        "empty": "No leave types configured yet.",
-        "halfDayAllowed": "Half-day allowed",
+        "title": "چھٹی کی اقسام",
+        "description": "اس تنظیم کے لیے چھٹی کی اقسام بنائیں اور ترمیم کریں۔",
+        "create": "قسم بنائیں",
+        "edit": "قسم ترمیم کریں",
+        "empty": "ابھی کوئی چھٹی کی قسم ترتیب نہیں۔",
+        "halfDayAllowed": "آدھے دن کی چھٹی کی اجازت",
         "columns": {
-          "code": "Code",
-          "name": "Name",
-          "paidStatus": "Paid status",
-          "unit": "Unit",
-          "status": "Status"
+          "code": "کوڈ",
+          "name": "نام",
+          "paidStatus": "ادائیگی کی حالت",
+          "unit": "یونٹ",
+          "status": "حالت"
         }
       },
       "adjust": {
-        "title": "Balance adjustments",
-        "description": "Grant or adjust leave balances for an employee.",
-        "employeeId": "Employee ID",
-        "leaveType": "Leave type",
-        "selectType": "Select leave type",
-        "entryType": "Entry type",
-        "grant": "Grant",
-        "adjustment": "Adjustment",
-        "quantity": "Quantity",
-        "effectiveDate": "Effective date",
-        "reason": "Reason"
+        "title": "بیلنس کی ایڈجسٹمنٹ",
+        "description": "ملازم کے لیے چھٹی بیلنس دیں یا ایڈجسٹ کریں۔",
+        "employeeId": "ملازم ID",
+        "leaveType": "چھٹی کی قسم",
+        "selectType": "چھٹی کی قسم منتخب کریں",
+        "entryType": "انٹری کی قسم",
+        "grant": "عطیہ",
+        "adjustment": "ایڈجسٹمنٹ",
+        "quantity": "مقدار",
+        "effectiveDate": "مؤثر تاریخ",
+        "reason": "وجہ"
       },
       "columns": {
-        "employee": "Employee",
-        "type": "Type",
-        "dates": "Dates",
-        "quantity": "Quantity",
-        "status": "Status",
-        "reason": "Reason"
+        "employee": "ملازم",
+        "type": "قسم",
+        "dates": "تاریخیں",
+        "quantity": "مقدار",
+        "status": "حالت",
+        "reason": "وجہ"
       },
       "status": {
-        "DRAFT": "Draft",
-        "SUBMITTED": "Submitted",
-        "APPROVED": "Approved",
-        "REJECTED": "Rejected",
-        "RETURNED": "Returned",
-        "CANCELLED": "Cancelled",
-        "COMPLETED": "Completed"
+        "DRAFT": "ڈرافٹ",
+        "SUBMITTED": "جمع شدہ",
+        "APPROVED": "منظور",
+        "REJECTED": "مسترد",
+        "RETURNED": "واپس",
+        "CANCELLED": "منسوخ",
+        "COMPLETED": "مکمل"
       }
     },
     "approvals": {
-      "title": "Approvals",
-      "description": "Items assigned for your decision.",
+      "title": "منظوریاں",
+      "description": "آپ کے فیصلے کے لیے تفویض شدہ آئٹمز۔",
       "tabs": {
-        "assigned": "Assigned to me"
+        "assigned": "مجھے تفویض"
       },
-      "empty": "No items waiting for approval.",
+      "empty": "منظوری کے لیے کوئی آئٹم زیر التوا نہیں۔",
       "columns": {
-        "type": "Type",
-        "employee": "Employee",
-        "title": "Summary",
-        "status": "Status",
-        "submittedAt": "Submitted",
-        "open": "Open"
+        "type": "قسم",
+        "employee": "ملازم",
+        "title": "خلاصہ",
+        "status": "حالت",
+        "submittedAt": "جمع شدہ",
+        "open": "کھولیں"
       },
       "types": {
-        "LEAVE": "Leave",
-        "CHANGE_REQUEST": "Change request"
+        "LEAVE": "چھٹی",
+        "CHANGE_REQUEST": "تبدیلی کی درخواست"
       }
     },
     "payroll": {
       "home": {
-        "title": "Payroll",
-        "description": "Payslip publishing and payroll overview.",
-        "published": "Published payslips",
-        "generated": "Generated payslips",
-        "total": "Total payslips",
+        "title": "پے رول",
+        "description": "پے سلپ اشاعت اور پے رول کا جائزہ۔",
+        "published": "شائع شدہ پے سلپس",
+        "generated": "تولید شدہ پے سلپس",
+        "total": "کل پے سلپس",
         "links": {
-          "payslips": "Payslips",
-          "payslipsHint": "Browse published and generated payslips.",
-          "publish": "Publish payslip",
-          "publishHint": "Publish an ESS-visible payslip for an employee."
+          "payslips": "پے سلپس",
+          "payslipsHint": "شائع اور تولید شدہ پے سلپس دیکھیں۔",
+          "publish": "پے سلپ شائع کریں",
+          "publishHint": "ملازم کے لیے ESS میں نظر آنے والی پے سلپ شائع کریں۔"
         }
       },
       "payslips": {
-        "title": "Payslips",
-        "description": "Admin list of tenant payslips.",
-        "publishCta": "Publish payslip",
-        "filterStatus": "Filter by status",
-        "allStatuses": "All statuses",
-        "empty": "No payslips found.",
+        "title": "پے سلپس",
+        "description": "ٹینینٹ پے سلپس کی منتظم فہرست۔",
+        "publishCta": "پے سلپ شائع کریں",
+        "filterStatus": "حالت کے مطابق فلٹر",
+        "allStatuses": "تمام حالتیں",
+        "empty": "کوئی پے سلپ نہیں ملا۔",
         "publish": "شائع کریں"
       },
       "publish": {
-        "title": "Publish payslip",
-        "description": "Create a published payslip visible in employee self-service.",
+        "title": "پے سلپ شائع کریں",
+        "description": "ملازم سیلف سروس میں نظر آنے والی شائع شدہ پے سلپ بنائیں۔",
         "fields": {
-          "employeeId": "Employee ID",
-          "periodLabel": "Period label",
-          "periodStart": "Period start",
-          "periodEnd": "Period end",
-          "currency": "Currency",
-          "grossAmount": "Gross amount",
-          "netAmount": "Net amount"
+          "employeeId": "ملازم ID",
+          "periodLabel": "مدت کا لیبل",
+          "periodStart": "مدت کا آغاز",
+          "periodEnd": "مدت کا اختتام",
+          "currency": "کرنسی",
+          "grossAmount": "مجموعی رقم",
+          "netAmount": "خالص رقم"
         }
       },
       "columns": {
@@ -1404,69 +1641,69 @@
       }
     },
     "reports": {
-      "title": "Reports",
-      "description": "Open operational reports from existing modules.",
-      "run": "Run",
-      "empty": "No reports are available for your permissions.",
+      "title": "رپورٹیں",
+      "description": "موجودہ ماڈیولز سے آپریشنل رپورٹیں کھولیں۔",
+      "run": "چلائیں",
+      "empty": "آپ کی اجازتوں کے لیے کوئی رپورٹ دستیاب نہیں۔",
       "catalogue": {
         "hrDirectory": {
-          "title": "HR employee directory",
-          "description": "Browse the employee directory."
+          "title": "HR ملازمین ڈائریکٹری",
+          "description": "ملازمین کی ڈائریکٹری دیکھیں۔"
         },
         "attendanceDaily": {
-          "title": "Attendance daily",
-          "description": "Open attendance records for daily review."
+          "title": "روزانہ حاضری",
+          "description": "روزانہ جائزے کے لیے حاضری ریکارڈ کھولیں۔"
         },
         "leavePending": {
-          "title": "Leave pending",
-          "description": "Submitted leave requests awaiting decision."
+          "title": "زیر التوا چھٹی",
+          "description": "فیصلے کے منتظر جمع شدہ چھٹی کی درخواستیں۔"
         },
         "audit": {
-          "title": "Audit",
-          "description": "Tenant audit event log."
+          "title": "آڈٹ",
+          "description": "ٹینینٹ آڈٹ واقعہ لاگ۔"
         }
       }
     },
     "integrations": {
-      "title": "Integrations",
-      "description": "Connect biometric, SSO, payroll export, and messaging channels.",
-      "configure": "Configure",
+      "title": "انضمام",
+      "description": "بائیومیٹرک، SSO، پے رول برآمد اور میسجنگ چینلز جوڑیں۔",
+      "configure": "ترتیب دیں",
       "status": {
-        "configured": "Configured",
-        "notConfigured": "Not configured"
+        "configured": "ترتیب شدہ",
+        "notConfigured": "ترتیب نہیں"
       },
       "categories": {
         "biometric": {
-          "title": "Biometric devices",
-          "description": "Attendance capture devices and connectors."
+          "title": "بائیومیٹرک آلات",
+          "description": "حاضری کیپچر آلات اور کنیکٹرز۔"
         },
         "sso": {
-          "title": "Single sign-on",
-          "description": "Identity provider and security settings."
+          "title": "سنگل سائن آن",
+          "description": "شناخت فراہم کرنے والا اور سیکیورٹی ترتیبات۔"
         },
         "payrollExport": {
-          "title": "Payroll export",
-          "description": "Export payroll outputs to external systems."
+          "title": "پے رول برآمد",
+          "description": "پے رول آؤٹ پٹ بیرونی سسٹمز میں برآمد کریں۔"
         },
         "finance": {
-          "title": "Finance",
-          "description": "Finance and GL integrations."
+          "title": "فنانس",
+          "description": "فنانس اور GL انضمام۔"
         },
         "email": {
-          "title": "Email",
-          "description": "Transactional email delivery."
+          "title": "ای میل",
+          "description": "ٹرانزیکشنل ای میل ڈیلیوری۔"
         },
         "sms": {
           "title": "SMS",
-          "description": "SMS notification channel."
+          "description": "SMS نوٹیفکیشن چینل۔"
         },
         "webhook": {
-          "title": "Webhooks",
-          "description": "Outbound event webhooks."
+          "title": "ویب ہکس",
+          "description": "آؤٹ باؤنڈ ایونٹ ویب ہکس۔"
         },
         "api": {
-          "title": "API access",
-          "description": "API clients and credentials."
+          "title": "API رسائی",
+          "description": "API کلائنٹس اور اسناد۔"
         }
       }
     },
@@ -1548,19 +1785,24 @@
   },
   "organisation": {
     "overview": {
-      "title": "Organisation Structure",
-      "description": "Manage your legal entities, branches, departments, cost centres, and positions.",
-      "legalEntities": "Legal entities",
-      "departments": "Departments",
-      "activeEmployees": "Active employees",
-      "unassigned": "Unassigned placements"
+      "title": "تنظیمی ڈھانچہ",
+      "description": "قانونی ادارے، شاخیں، محکمے، لاگت مراکز اور عہدوں کا انتظام کریں۔",
+      "legalEntities": "قانونی ادارے",
+      "branches": "شاخیں",
+      "departments": "محکمے",
+      "grades": "گریڈز",
+      "positions": "عہدے",
+      "activeEmployees": "فعال ملازمین",
+      "unassigned": "غیر تفویض شدہ"
     },
     "nav": {
       "legalEntities": "قانونی ادارے",
       "branches": "شاخیں",
       "departments": "محکمے",
       "costCentres": "لاگت مراکز",
-      "positions": "عہدے"
+      "positions": "عہدے",
+      "grades": "گریڈز",
+      "history": "تاریخ"
     },
     "filters": {
       "allStatuses": "تمام حالات",
@@ -1780,14 +2022,14 @@
       }
     },
     "grades": {
-      "title": "Grades",
-      "description": "Job grade catalogue for positions and employment.",
-      "code": "Code",
-      "name": "Name"
+      "title": "گریڈز",
+      "description": "عہدوں اور ملازمت کے لیے جاب گریڈ کیٹلاگ۔",
+      "code": "کوڈ",
+      "name": "نام"
     },
     "history": {
-      "title": "Organisation history",
-      "description": "Effective-dated organisation structure changes."
+      "title": "تنظیم کی تاریخ",
+      "description": "مؤثر تاریخ والی تنظیمی ڈھانچے کی تبدیلیاں۔"
     }
   },
   "attendance": {

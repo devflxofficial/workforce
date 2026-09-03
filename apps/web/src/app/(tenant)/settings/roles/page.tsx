@@ -64,7 +64,7 @@ export default function RolesSettingsPage() {
           className="flex-1 rounded-md border border-border-default px-3 py-2"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder="Custom role name"
+          placeholder={t('tenant.settings.roles.namePlaceholder')}
         />
         <button
           type="button"

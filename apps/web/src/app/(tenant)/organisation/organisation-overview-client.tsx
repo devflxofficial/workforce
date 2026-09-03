@@ -26,27 +26,61 @@ export function OrganisationOverviewClient() {
 
       {counts && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard title="Legal entities" value={counts.legalEntities} />
-          <StatCard title="Branches" value={counts.branches} />
-          <StatCard title="Departments" value={counts.departments} />
-          <StatCard title="Grades" value={counts.grades} />
-          <StatCard title="Positions" value={counts.positions} />
-          <StatCard title="Active employees" value={counts.activeEmployees} />
-          <StatCard title="Unassigned employees" value={counts.unassignedEmployees} variant="warning" />
+          <StatCard title={t('organisation.overview.legalEntities')} value={counts.legalEntities} />
+          <StatCard title={t('organisation.overview.branches')} value={counts.branches} />
+          <StatCard title={t('organisation.overview.departments')} value={counts.departments} />
+          <StatCard title={t('organisation.overview.grades')} value={counts.grades} />
+          <StatCard title={t('organisation.overview.positions')} value={counts.positions} />
+          <StatCard title={t('organisation.overview.activeEmployees')} value={counts.activeEmployees} />
+          <StatCard
+            title={t('organisation.overview.unassigned')}
+            value={counts.unassignedEmployees}
+            variant="warning"
+          />
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          { key: 'departments', title: t('organisation.nav.departments'), href: ROUTES.TENANT.ORGANISATION.DEPARTMENTS },
-          { key: 'grades', title: 'Grades', href: ROUTES.TENANT.ORGANISATION.GRADES },
-          { key: 'history', title: 'History', href: ROUTES.TENANT.ORGANISATION.HISTORY },
-          { key: 'legalEntities', title: t('organisation.nav.legalEntities'), href: ROUTES.TENANT.ORGANISATION.LEGAL_ENTITIES },
-          { key: 'branches', title: t('organisation.nav.branches'), href: ROUTES.TENANT.ORGANISATION.BRANCHES },
-          { key: 'positions', title: t('organisation.nav.positions'), href: ROUTES.TENANT.ORGANISATION.POSITIONS },
+          {
+            key: 'departments',
+            title: t('organisation.nav.departments'),
+            href: ROUTES.TENANT.ORGANISATION.DEPARTMENTS,
+          },
+          {
+            key: 'grades',
+            title: t('organisation.nav.grades'),
+            href: ROUTES.TENANT.ORGANISATION.GRADES,
+          },
+          {
+            key: 'history',
+            title: t('organisation.nav.history'),
+            href: ROUTES.TENANT.ORGANISATION.HISTORY,
+          },
+          {
+            key: 'legalEntities',
+            title: t('organisation.nav.legalEntities'),
+            href: ROUTES.TENANT.ORGANISATION.LEGAL_ENTITIES,
+          },
+          {
+            key: 'branches',
+            title: t('organisation.nav.branches'),
+            href: ROUTES.TENANT.ORGANISATION.BRANCHES,
+          },
+          {
+            key: 'positions',
+            title: t('organisation.nav.positions'),
+            href: ROUTES.TENANT.ORGANISATION.POSITIONS,
+          },
         ].map((item) => (
-          <Link key={item.key} href={item.href} className="group rounded-xl border border-border-default bg-surface-primary p-6 transition-shadow hover:shadow-md">
-            <h2 className="text-heading-h3 font-semibold text-text-primary group-hover:text-brand-blue-600 transition-colors">{item.title}</h2>
+          <Link
+            key={item.key}
+            href={item.href}
+            className="group rounded-xl border border-border-default bg-surface-primary p-6 transition-shadow hover:shadow-md"
+          >
+            <h2 className="text-heading-h3 font-semibold text-text-primary transition-colors group-hover:text-brand-blue-600">
+              {item.title}
+            </h2>
           </Link>
         ))}
       </div>

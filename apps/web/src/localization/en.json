@@ -23,6 +23,7 @@
     "select": "Select…",
     "required": "Required",
     "optional": "Optional",
+    "emptyValue": "—",
     "actions": "Actions",
     "skipToContent": "Skip to main content",
     "comingSoonHint": "This module is not available yet",
@@ -104,6 +105,19 @@
       "ssoNotConfigured": "{provider} sign-in is not configured for this environment.",
       "maintenance": "Workforce Cloud OS is temporarily unavailable for maintenance. Please try again later.",
       "ssoOnly": "Password sign-in is disabled for this organisation. Use your organisation SSO provider."
+    },
+    "demoAccess": {
+      "title": "Development demo access",
+      "badge": "Dev only",
+      "description": "Local and staging UI verification only. Uses the real sign-in flow.",
+      "passwordRequired": "Set NEXT_PUBLIC_DEMO_LOGIN_PASSWORD in your local web env to auto-sign in, or enter the demo password manually.",
+      "signInAs": "Sign in as {role}",
+      "roles": {
+        "tenantAdmin": "Tenant Admin",
+        "hrAdmin": "HR Admin",
+        "manager": "Manager",
+        "employee": "Employee"
+      }
     },
     "forgot": {
       "title": "Forgot password",
@@ -1115,6 +1129,23 @@
       "label": "Tenant Admin",
       "roleLabel": "HR Administrator"
     },
+    "setup": {
+      "status": {
+        "complete": "Done",
+        "incomplete": "Pending",
+        "in_progress": "In progress",
+        "unavailable": "Unavailable",
+        "blocked": "Blocked"
+      },
+      "blocked": {
+        "leave": "Leave module is not yet available for this tenant.",
+        "payroll": "Payroll module is not yet available for this tenant.",
+        "notifications": "Notification templates are not yet available.",
+        "integrations": "Integrations are not yet available.",
+        "policies": "Missing policies",
+        "requirements": "Missing requirements"
+      }
+    },
     "dashboard": {
       "title": "Home",
       "description": "Overview of your workforce.",
@@ -1169,7 +1200,10 @@
         "notifications": "Notifications",
         "integrations": "Integrations",
         "sessions": "Active sessions",
-        "roles": "Roles and permissions"
+        "roles": "Roles and permissions",
+        "customFields": "Custom fields",
+        "holidayCalendar": "Holiday calendar",
+        "payrollCalendar": "Payroll calendar"
       },
       "company": {
         "title": "Company profile",
@@ -1187,7 +1221,22 @@
         "previewPayslip": "Payslip header preview",
         "contrastWarning": "Contrast warning",
         "uploads": "Logo uploads",
-        "uploading": "Uploading logo..."
+        "uploading": "Uploading logo...",
+        "defaultAppName": "Workforce OS",
+        "fields": {
+          "logoUrl": "Logo URL",
+          "loginLogoUrl": "Login logo URL",
+          "faviconUrl": "Favicon URL",
+          "primaryColor": "Primary colour",
+          "secondaryColor": "Secondary colour",
+          "applicationName": "Application name",
+          "emailSenderName": "Email sender name"
+        },
+        "logos": {
+          "logo": "Logo",
+          "loginLogo": "Login logo",
+          "favicon": "Favicon"
+        }
       },
       "regional": {
         "title": "Language and regional settings",
@@ -1195,8 +1244,30 @@
         "save": "Save regional settings",
         "saved": "Regional settings saved.",
         "rtlPreview": "RTL preview",
+        "rtlPreviewSample": "Your tenant is configured with local settings.",
         "enabledLocales": "Enabled locales",
-        "workingWeekPattern": "Working week"
+        "workingWeekPattern": "Working week",
+        "fields": {
+          "defaultLocale": "Default locale",
+          "dateFormat": "Date format",
+          "numberFormat": "Number format",
+          "currencyDisplay": "Currency display",
+          "defaultTimezone": "Default timezone",
+          "weekStart": "Week start day"
+        },
+        "weekdays": {
+          "mon": "Monday",
+          "tue": "Tuesday",
+          "wed": "Wednesday",
+          "thu": "Thursday",
+          "fri": "Friday",
+          "sat": "Saturday",
+          "sun": "Sunday"
+        },
+        "locales": {
+          "en": "English",
+          "ur": "Urdu"
+        }
       },
       "users": {
         "title": "Tenant administrators and users",
@@ -1215,6 +1286,7 @@
         "title": "Roles and permissions",
         "description": "View and edit the permission matrix.",
         "create": "Create role",
+        "namePlaceholder": "Custom role name",
         "system": "System",
         "custom": "Custom",
         "assignments": "{count} users",
@@ -1234,22 +1306,41 @@
         "title": "Security settings",
         "description": "Password, MFA, and session policy.",
         "save": "Save security policy",
-        "saved": "Security policy saved."
+        "saved": "Security policy saved.",
+        "passwordMinLength": "Minimum password length",
+        "passwordRequireUpper": "Require uppercase letter",
+        "passwordRequireLower": "Require lowercase letter",
+        "passwordRequireDigit": "Require digit",
+        "passwordRequireSymbol": "Require symbol",
+        "mfaRequiredForAdmins": "Require MFA for administrators",
+        "sessionTtlHours": "Session duration (hours)",
+        "maxLoginAttempts": "Maximum login attempts",
+        "trustedEmailDomains": "Trusted email domains (comma-separated)"
       },
       "sessions": {
         "title": "Active sessions",
         "description": "Review and revoke signed-in sessions.",
         "revoke": "End session",
         "revokeAll": "End all sessions",
-        "empty": "No active sessions."
+        "empty": "No active sessions.",
+        "user": "User",
+        "device": "Device",
+        "signedIn": "Signed in",
+        "lastActivity": "Last activity",
+        "actions": "Actions"
       },
       "subscription": {
         "title": "Subscription",
         "description": "Plan, seats, and usage for your tenant.",
         "requestUpgrade": "Request upgrade",
+        "planLabel": "Plan",
         "seatLimit": "Seat limit",
         "activeEmployees": "Active employees",
+        "invitedUsers": "Invited users",
         "storage": "Storage used",
+        "apiUsage": "API calls (month)",
+        "integrationVolume": "Integration events",
+        "exportVolume": "Data exports",
         "approaching": "Approaching seat limit",
         "reached": "Seat limit reached",
         "history": "Upgrade request history",
@@ -1257,23 +1348,262 @@
         "plan": "Plan",
         "createdAt": "Created",
         "note": "Note",
-        "noHistory": "No upgrade requests yet."
+        "noHistory": "No upgrade requests yet.",
+        "selectPlan": "Select plan",
+        "billingEmail": "Billing contact email",
+        "businessReason": "Business reason",
+        "contactPerson": "Contact person",
+        "additionalSeats": "Additional seats",
+        "effectiveDate": "Requested effective date",
+        "compareTitle": "Plan comparison",
+        "compareDescription": "Compare plans and entitlements.",
+        "compareLink": "Compare plans",
+        "feature": "Feature",
+        "current": "Current",
+        "features": {
+          "employee_limit": "Employee limit",
+          "core_hr": "Core HR",
+          "attendance": "Attendance",
+          "leave": "Leave",
+          "payroll": "Payroll",
+          "workflows": "Workflows",
+          "reports": "Reports",
+          "sso": "SSO",
+          "api": "API",
+          "support": "Support",
+          "hosting": "Hosting"
+        },
+        "featureState": {
+          "included": "Included",
+          "limited": "Limited",
+          "optional": "Optional",
+          "unavailable": "Unavailable"
+        }
       },
       "setup": {
         "title": "Tenant setup checklist",
-        "description": "Complete required configuration before go-live.",
+        "description": "Complete your organization setup to go-live.",
         "progress": "{percent}% complete",
         "required": "Required",
         "optional": "Optional",
         "blocked": "Blocked",
-        "resume": "Continue",
+        "resume": "Resume setup",
+        "refresh": "Refresh",
         "goLiveReady": "Ready for go-live",
-        "notReady": "Setup incomplete"
+        "goLiveBanner": "All required setup steps are complete. Your tenant is ready for go-live.",
+        "notReady": "Setup incomplete",
+        "requiredMarker": "*",
+        "checklistHeading": "Setup checklist",
+        "documentation": "Documentation",
+        "contactSupport": "Contact support",
+        "downloadChecklist": "Download checklist",
+        "downloadFilename": "tenant-setup-checklist.csv",
+        "assignOwnership": "Assign ownership",
+        "assignOwnershipTitle": "Assign step ownership",
+        "assignOwnershipDescription": "Choose who is responsible for each setup step.",
+        "saveOwners": "Save assignments",
+        "selectOwner": "Select owner",
+        "trialExpired": "Your trial has expired. Upgrade your subscription to continue setup.",
+        "supportIntervention": "Support intervention is required. Please contact support to proceed.",
+        "greeting": {
+          "morning": "Good morning, {name}!",
+          "afternoon": "Good afternoon, {name}!",
+          "evening": "Good evening, {name}!"
+        },
+        "table": {
+          "number": "#",
+          "step": "Step",
+          "owner": "Owner",
+          "status": "Status",
+          "blocker": "Blocker",
+          "action": "Action"
+        },
+        "blocker": {
+          "none": "None"
+        },
+        "calendar": {
+          "title": "Implementation calendar",
+          "week1": "Week 1: Foundation",
+          "week2": "Week 2: Policies",
+          "week3": "Week 3: Data & people",
+          "week4": "Week 4: Validation & go-live",
+          "stepComplete": "Complete",
+          "stepPending": "Pending"
+        },
+        "requirements": {
+          "attendance_locked": "Attendance locked",
+          "attendance_pending": "Attendance lock required",
+          "payroll_configured": "Payroll configured",
+          "payroll_pending": "Payroll configuration required",
+          "employee_data": "Employee data imported",
+          "employee_pending": "Employee import required",
+          "payroll_group": "Payroll group setup",
+          "payroll_group_pending": "Payroll group setup required"
+        },
+        "actions": {
+          "review": "Review",
+          "setup": "Setup",
+          "configure": "Configure",
+          "import": "Import",
+          "validate": "Validate"
+        },
+        "summary": {
+          "progress": "Setup progress",
+          "progressValue": "{percent}% complete",
+          "progressHint": "Required and optional steps",
+          "seats": "Seat usage",
+          "seatValueWithLimit": "{active} / {limit} seats",
+          "seatValueCount": "{count} seats",
+          "seatPercent": "{percent}% of limit",
+          "policies": "Policy count",
+          "policiesValue": "{count} / {target} configured",
+          "pendingPolicies": "{count} pending",
+          "readiness": "Readiness count",
+          "readinessValue": "{count} / {target} done",
+          "readinessHint": "of {total} actionable steps",
+          "remainingSteps": "{count} remaining"
+        },
+        "support": {
+          "title": "Implementation support",
+          "description": "Use the checklist to complete tenant onboarding.",
+          "nextAction": "Next recommended action",
+          "nextActionHint": "This is the first incomplete step you can work on now.",
+          "goToStep": "Go to {step}",
+          "settingsHub": "Open settings hub",
+          "resources": "Support resources"
+        }
       },
       "audit": {
         "title": "Audit log",
         "description": "Sensitive changes within your tenant.",
-        "empty": "No audit events found."
+        "empty": "No audit events found.",
+        "detailTitle": "Audit event detail",
+        "backToLog": "Back to audit log",
+        "when": "When",
+        "actor": "Actor",
+        "module": "Module",
+        "action": "Action",
+        "resource": "Resource",
+        "severity": "Severity",
+        "ip": "Source IP",
+        "before": "Previous value",
+        "after": "New value",
+        "related": "Related events",
+        "filterModule": "Filter by module",
+        "filterAction": "Filter by action",
+        "filterSeverity": "Filter by severity",
+        "fromDate": "From date",
+        "toDate": "To date",
+        "widgets": {
+          "sensitiveChanges": "Sensitive changes",
+          "roleChanges": "Role changes",
+          "payrollActions": "Payroll actions",
+          "attendanceChanges": "Attendance changes",
+          "failedLogins": "Failed logins",
+          "supportAccess": "Support access",
+          "dataExports": "Data exports"
+        }
+      },
+      "accessDenied": "You do not have permission to view this settings page.",
+      "customFields": {
+        "title": "Custom fields",
+        "description": "Define additional fields for employee and organisation records.",
+        "create": "Add field",
+        "edit": "Edit field",
+        "empty": "No custom fields defined yet.",
+        "filterEntity": "Entity",
+        "allEntities": "All entities",
+        "fields": {
+          "entityType": "Entity type",
+          "key": "Field key",
+          "label": "Label",
+          "dataType": "Data type",
+          "required": "Required"
+        },
+        "columns": {
+          "entity": "Entity",
+          "key": "Key",
+          "label": "Label",
+          "type": "Type",
+          "required": "Required",
+          "status": "Status"
+        }
+      },
+      "holidayCalendar": {
+        "title": "Holiday calendar",
+        "description": "Public holidays and non-working days for leave and attendance.",
+        "createCalendar": "Create calendar",
+        "calendarsTitle": "Calendars",
+        "addHoliday": "Add holiday",
+        "selectCalendar": "Select a calendar to manage holidays.",
+        "fields": {
+          "code": "Code",
+          "name": "Name",
+          "country": "Country code",
+          "holidayName": "Holiday name",
+          "paid": "Paid holiday"
+        },
+        "columns": {
+          "date": "Date",
+          "name": "Name",
+          "paid": "Paid"
+        }
+      },
+      "payrollCalendar": {
+        "title": "Payroll calendar",
+        "description": "Pay periods and payroll processing schedule.",
+        "createGroup": "Create payroll group",
+        "createCalendar": "Create calendar",
+        "calendarsTitle": "Calendars",
+        "addPeriod": "Add period",
+        "publish": "Publish",
+        "selectCalendar": "Select a calendar to manage periods.",
+        "fields": {
+          "code": "Code",
+          "name": "Name",
+          "periodCode": "Period code",
+          "attendanceCutoff": "Attendance cutoff (ISO-8601)",
+          "adjustmentCutoff": "Adjustment cutoff (ISO-8601)"
+        },
+        "columns": {
+          "code": "Code",
+          "start": "Start",
+          "end": "End",
+          "payDate": "Pay date",
+          "status": "Status"
+        }
+      },
+      "companyFields": {
+        "displayName": "Display name",
+        "legalName": "Legal name",
+        "registrationNumber": "Registration number",
+        "industry": "Industry",
+        "employeeSizeBand": "Employee size",
+        "addressLine1": "Address line 1",
+        "addressLine2": "Address line 2",
+        "city": "City",
+        "stateProvince": "State / province",
+        "postalCode": "Postal code",
+        "contactEmail": "Contact email",
+        "contactPhone": "Contact phone",
+        "countryCode": "Country",
+        "baseCurrency": "Currency",
+        "defaultTimezone": "Timezone",
+        "financialYearStart": "Financial year start",
+        "payrollMonthConfig": "Payroll month configuration"
+      },
+      "usersTable": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "lastLogin": "Last login",
+        "mfa": "MFA",
+        "actions": "Actions",
+        "search": "Search users",
+        "emailPlaceholder": "email@company.com",
+        "roleSelect": "Role",
+        "changeRole": "Change role"
       }
     },
     "setupSteps": {
@@ -1288,6 +1618,7 @@
       "employee_import": "Employee import",
       "notifications": "Notifications",
       "integration_setup": "Integration setup",
+      "parallel_payroll": "Parallel payroll",
       "validation": "Validation",
       "go_live_readiness": "Go-live readiness"
     },
@@ -1429,6 +1760,63 @@
       "types": {
         "LEAVE": "Leave",
         "CHANGE_REQUEST": "Change request"
+      },
+      "workflows": {
+        "title": "Workflow list",
+        "description": "Default and custom approval workflows.",
+        "create": "New workflow",
+        "publish": "Publish",
+        "empty": "No workflow definitions yet.",
+        "columns": {
+          "code": "Code",
+          "name": "Name",
+          "requestType": "Request type",
+          "stages": "Stages",
+          "status": "Status"
+        }
+      },
+      "workflowBuilder": {
+        "title": "Workflow builder",
+        "description": "Create or edit approval workflow definitions.",
+        "stagesTitle": "Approval stages",
+        "addStage": "Add stage",
+        "saveAndPublish": "Save and publish",
+        "fields": {
+          "code": "Code",
+          "name": "Name",
+          "stageName": "Stage name"
+        }
+      },
+      "delegation": {
+        "title": "Delegation settings",
+        "description": "Delegate approval authority for a period.",
+        "create": "Create delegation",
+        "revoke": "Revoke",
+        "fields": {
+          "delegator": "Delegator user ID",
+          "delegate": "Delegate user ID",
+          "requestTypes": "Request types (comma-separated)",
+          "reason": "Reason"
+        },
+        "columns": {
+          "delegator": "Delegator",
+          "delegate": "Delegate",
+          "types": "Types",
+          "period": "Period",
+          "status": "Status"
+        }
+      },
+      "history": {
+        "title": "Approval history",
+        "description": "Past approval decisions and audit trail.",
+        "empty": "No approval history recorded yet.",
+        "columns": {
+          "occurredAt": "When",
+          "requestType": "Type",
+          "action": "Action",
+          "actor": "Actor",
+          "comment": "Comment"
+        }
       }
     },
     "reports": {
@@ -1459,6 +1847,74 @@
       "title": "Integrations",
       "description": "Connect biometric, SSO, payroll export, and messaging channels.",
       "configure": "Configure",
+      "healthLink": "Integration health",
+      "credentialsLink": "API credentials",
+      "biometricLink": "Biometric connector",
+      "health": {
+        "title": "Integration health",
+        "description": "Connector status, warnings, and last sync times.",
+        "activeConnections": "Active connections",
+        "failedConnections": "Failed / warning",
+        "unmappedEvents": "Unmapped events",
+        "columns": {
+          "integration": "Integration",
+          "status": "Status",
+          "items": "Items",
+          "started": "Started",
+          "message": "Message"
+        }
+      },
+      "credentials": {
+        "title": "API credentials",
+        "description": "Manage API keys and client credentials securely.",
+        "create": "Create client",
+        "rotate": "Rotate secret",
+        "disable": "Disable",
+        "statusActive": "Active",
+        "statusRevoked": "Revoked",
+        "secretTitle": "Client secret",
+        "secretHint": "Copy this secret now. It will not be shown again.",
+        "fields": {
+          "name": "Client name",
+          "scopes": "Scopes (comma-separated)"
+        },
+        "columns": {
+          "name": "Name",
+          "scopes": "Scopes",
+          "lastUsed": "Last used",
+          "status": "Status"
+        }
+      },
+      "biometric": {
+        "title": "Biometric connector",
+        "description": "Configure biometric attendance device connectors.",
+        "mappingTitle": "Biometric mapping",
+        "mappingDescription": "Map device identifiers to employees.",
+        "mappingLink": "Employee mapping",
+        "configured": "Biometric connector is configured.",
+        "notConfigured": "Biometric connector is not configured yet.",
+        "setupLink": "Open setup",
+        "mappingEmpty": "No external mappings found.",
+        "map": "Map",
+        "columns": {
+          "externalId": "External ID",
+          "type": "Type",
+          "status": "Status",
+          "internalId": "Internal ID"
+        }
+      },
+      "setup": {
+        "title": "Integration setup ({id})",
+        "description": "Configure connection settings and run connectivity tests.",
+        "test": "Test connection",
+        "activate": "Activate",
+        "disable": "Disable",
+        "statusLabel": "Status",
+        "fields": {
+          "name": "Connection name",
+          "configuration": "Configuration (JSON)"
+        }
+      },
       "status": {
         "configured": "Configured",
         "notConfigured": "Not configured"
@@ -1575,7 +2031,10 @@
       "title": "Organisation Structure",
       "description": "Manage your legal entities, branches, departments, cost centres, and positions.",
       "legalEntities": "Legal entities",
+      "branches": "Branches",
       "departments": "Departments",
+      "grades": "Grades",
+      "positions": "Positions",
       "activeEmployees": "Active employees",
       "unassigned": "Unassigned placements"
     },
@@ -1584,7 +2043,9 @@
       "branches": "Branches",
       "departments": "Departments",
       "costCentres": "Cost Centres",
-      "positions": "Positions"
+      "positions": "Positions",
+      "grades": "Grades",
+      "history": "History"
     },
     "filters": {
       "allStatuses": "All statuses",

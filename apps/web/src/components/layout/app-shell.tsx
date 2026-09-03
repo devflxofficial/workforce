@@ -7,7 +7,8 @@ import { TopBar } from './top-bar';
 import type { ReactNode } from 'react';
 
 const PLATFORM_SIDEBAR_COLLAPSED_KEY = 'platform.sidebar.collapsed';
-const SIDEBAR_EXPANDED_PX = 244;
+const SIDEBAR_EXPANDED_XL_PX = 244;
+const SIDEBAR_EXPANDED_LG_PX = 224;
 const SIDEBAR_COLLAPSED_PX = 80;
 
 interface AppShellProps {
@@ -69,6 +70,7 @@ export function AppShell({
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [expandedWidth, setExpandedWidth] = useState(SIDEBAR_EXPANDED_XL_PX);
   const pathname = usePathname();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const isPlatform = variant === 'platform';
@@ -79,6 +81,15 @@ export function AppShell({
   const sidebarHeaderBorder = isPlatform ? 'border-brand-navy-800' : 'border-border-default';
   const asideLogo =
     isPlatform && collapsed ? (sidebarLogoCollapsed ?? sidebarLogo ?? logo) : (sidebarLogo ?? logo);
+
+  useEffect(() => {
+    if (!isPlatform) return;
+    const mq = window.matchMedia('(min-width: 1440px)');
+    const update = () => setExpandedWidth(mq.matches ? SIDEBAR_EXPANDED_XL_PX : SIDEBAR_EXPANDED_LG_PX);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [isPlatform]);
 
   useEffect(() => {
     if (!isPlatform) return;
@@ -119,12 +130,12 @@ export function AppShell({
   const desktopWidth = isPlatform
     ? collapsed
       ? `w-[${SIDEBAR_COLLAPSED_PX}px]`
-      : `w-[${SIDEBAR_EXPANDED_PX}px]`
+      : `w-[${expandedWidth}px]`
     : 'w-60';
 
   // Tailwind needs full class names at build time — use style for dynamic width.
   const desktopWidthStyle = isPlatform
-    ? { width: collapsed ? SIDEBAR_COLLAPSED_PX : SIDEBAR_EXPANDED_PX }
+    ? { width: collapsed ? SIDEBAR_COLLAPSED_PX : expandedWidth }
     : undefined;
 
   const footerUser = (

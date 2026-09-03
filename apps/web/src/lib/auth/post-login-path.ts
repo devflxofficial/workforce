@@ -13,11 +13,18 @@ export function resolvePostLoginPath(
     hasPermission('ess.dashboard.read') &&
     !hasPermission('hr.dashboard.read') &&
     !hasPermission('read:tenant_profile:tenant');
+  const isTenantAdministrator =
+    hasPermission('read:tenant_profile:tenant') ||
+    hasPermission('read:tenant_settings:tenant');
   const fallback =
     user.scope === 'platform'
       ? ROUTES.PLATFORM.DASHBOARD
       : shouldDefaultToEmployee
         ? ROUTES.EMPLOYEE.DASHBOARD
-        : ROUTES.TENANT.DASHBOARD;
+        : user.scope === 'tenant' &&
+            hasPermission('hr.dashboard.read') &&
+            !isTenantAdministrator
+          ? ROUTES.TENANT.HR.ROOT
+          : ROUTES.TENANT.DASHBOARD;
   return sanitizeReturnTo(returnTo, fallback);
 }

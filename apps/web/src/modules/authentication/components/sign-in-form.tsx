@@ -19,6 +19,7 @@ import {
 import { ApiError } from '../../../lib/api/types';
 import { PasswordInput } from './password-input';
 import { AuthShell } from './auth-shell';
+import { DemoLoginAccess } from './demo-login-access';
 import { ROUTES } from '../../../constants/routes.constants';
 
 const EMAIL_PREF_COOKIE = 'wcos_remember_email';
@@ -164,6 +165,60 @@ export function SignInForm({ tenantSlug }: SignInFormProps) {
     }
   });
 
+  const submitDemoLogin = async (identity: {
+    email: string;
+    password: string;
+    tenantSlug: string;
+  }) => {
+    setServerError(null);
+    setValue('email', identity.email);
+    if (identity.password) {
+      setValue('password', identity.password);
+    }
+
+    rememberTenantLoginSlug(identity.tenantSlug);
+
+    if (!identity.password) {
+      setServerError(t('demoAccess.passwordRequired'));
+      return;
+    }
+
+    try {
+      const result = await login({
+        email: identity.email,
+        password: identity.password,
+        tenantSlug: identity.tenantSlug,
+      });
+
+      writeRememberedEmail(null);
+
+      if (result.mfaRequired) {
+        const q = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : '';
+        router.push(`${ROUTES.AUTH.MFA_VERIFY}${q}`);
+        return;
+      }
+
+      router.replace(resolvePostLoginPath(result.user, returnTo));
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.code === 'ACCOUNT_LOCKED') {
+          setServerError(t('errors.accountLocked'));
+        } else if (
+          err.code === 'TENANT_SUSPENDED' ||
+          err.code === 'TENANT_NOT_FOUND'
+        ) {
+          setServerError(t('errors.tenantSuspended'));
+        } else if (err.code === 'TENANT_MEMBERSHIP_REQUIRED') {
+          setServerError(t('errors.membershipRequired'));
+        } else {
+          setServerError(t('errors.invalidCredentials'));
+        }
+        return;
+      }
+      setServerError(t('errors.generic'));
+    }
+  };
+
   const onSsoClick = (provider: 'microsoft' | 'google') => {
     setServerError(t('signIn.ssoNotConfigured', { provider: provider === 'microsoft' ? 'Microsoft' : 'Google' }));
   };
@@ -287,6 +342,12 @@ export function SignInForm({ tenantSlug }: SignInFormProps) {
           </div>
         ) : null}
       </form>
+
+      <DemoLoginAccess
+        tenantSlug={tenantSlug}
+        isSubmitting={isSubmitting}
+        onSelect={submitDemoLogin}
+      />
     </AuthShell>
   );
 }

@@ -13,13 +13,18 @@ import {
 import { AppException } from '../../../common/exceptions/app.exception';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
 import { ApprovalsInboxService } from '../services/approvals-inbox.service';
+import { ApprovalHistoryService } from '../services/approval-history.service';
+import { TENANT_ADMIN_PERMISSIONS } from '../../../common/constants/permissions.constants';
 
 @ApiTags('approvals')
 @ApiBearerAuth()
 @Controller('approvals')
 @UseGuards(JwtAuthGuard, PermissionGuard)
 export class ApprovalsController {
-  constructor(private readonly inbox: ApprovalsInboxService) {}
+  constructor(
+    private readonly inbox: ApprovalsInboxService,
+    private readonly history: ApprovalHistoryService,
+  ) {}
 
   @Get('inbox')
   @RequirePermissions(
@@ -29,6 +34,13 @@ export class ApprovalsController {
   @ApiOperation({ summary: 'Combined approval inbox (leave + change requests)' })
   getInbox(@CurrentUser() user: CurrentUserContext) {
     return this.inbox.getInbox(this.tenant(user));
+  }
+
+  @Get('history')
+  @RequirePermissions([WORKFLOW_PERMISSIONS.INBOX_READ, TENANT_ADMIN_PERMISSIONS.SETTINGS_READ], 'ANY')
+  @ApiOperation({ summary: 'Approval history timeline (SCR-WFL-06)' })
+  getHistory(@CurrentUser() user: CurrentUserContext) {
+    return this.history.list(this.tenant(user));
   }
 
   private tenant(user: CurrentUserContext): string {

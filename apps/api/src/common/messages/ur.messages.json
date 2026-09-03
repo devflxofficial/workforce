@@ -1,0 +1,20 @@
+{
+  "tenant.notFound": "Tenant نہیں ملا۔",
+  "tenant.profile.updated": "کمپنی پروفائل محفوظ ہو گئی۔",
+  "tenant.branding.updated": "برانڈنگ سیٹنگز محفوظ ہو گئیں۔",
+  "tenant.regional.updated": "علاقائی سیٹنگز محفوظ ہو گئیں۔",
+  "tenant.security.updated": "سیکیورٹی پالیسی محفوظ ہو گئی۔",
+  "tenant.upgrade.created": "اپ گریڈ کی درخواست جمع ہو گئی۔",
+  "tenant.upload.invalid": "اپ لوڈ فائل کی قسم مجاز نہیں ہے۔",
+  "tenant.upload.tooLarge": "اپ لوڈ فائل زیادہ بڑی ہے۔",
+  "tenant.branding.contrastWarning": "منتخب رنگ WCAG کنٹراسٹ معیار پر پورا نہیں اتر سکتے۔",
+  "tenant.upgrade.planRequired": "اپ گریڈ کے لیے منصوبہ منتخب کریں۔",
+  "tenant.setup.blocked.leave": "Leave ماڈیول ابھی دستیاب نہیں ہے۔",
+  "tenant.setup.blocked.payroll": "Payroll ماڈیول ابھی دستیاب نہیں ہے۔",
+  "tenant.setup.blocked.notifications": "نوٹیفکیشن ٹیمپلیٹس ابھی دستیاب نہیں ہیں۔",
+  "tenant.setup.blocked.integrations": "انٹیگریشنز ابھی دستیاب نہیں ہیں۔",
+  "tenant.setup.blocked.policies": "پالیسیاں غائب ہیں",
+  "tenant.setup.blocked.requirements": "ضروریات غائب ہیں",
+  "errors.validationFailed": "توثیق ناکام ہوئی۔",
+  "audit.notFound": "آڈٹ ایونٹ نہیں ملا۔"
+}

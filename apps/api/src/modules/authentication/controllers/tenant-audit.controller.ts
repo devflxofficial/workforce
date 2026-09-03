@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { PermissionGuard } from '../guards/permission.guard';
 import { RequirePermissions } from '../decorators/require-permissions.decorator';
@@ -48,6 +48,16 @@ class ListAuditDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsUUID()
+  actorId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  severity?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   fromDate?: string;
 
@@ -64,16 +74,23 @@ class ListAuditDto {
 export class TenantAuditController {
   constructor(private readonly audit: TenantAuditQueryService) {}
 
+  @Get('summary')
+  @RequirePermissions(TENANT_ADMIN_PERMISSIONS.AUDIT_READ)
+  @ApiOperation({ summary: 'Audit dashboard widgets (SCR-AUD-01)' })
+  summary(@CurrentUser() user: CurrentUserContext) {
+    return this.audit.summary(this.requireTenant(user));
+  }
+
   @Get()
   @RequirePermissions(TENANT_ADMIN_PERMISSIONS.AUDIT_READ)
-  @ApiOperation({ summary: 'List tenant-scoped audit events (SCR-AUD-01/02)' })
+  @ApiOperation({ summary: 'List tenant-scoped audit events (SCR-AUD-02)' })
   list(@Query() query: ListAuditDto, @CurrentUser() user: CurrentUserContext) {
     return this.audit.list(this.requireTenant(user), query);
   }
 
   @Get(':id')
   @RequirePermissions(TENANT_ADMIN_PERMISSIONS.AUDIT_READ)
-  @ApiOperation({ summary: 'Get audit event detail' })
+  @ApiOperation({ summary: 'Get audit event detail (SCR-AUD-03)' })
   getOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: CurrentUserContext,

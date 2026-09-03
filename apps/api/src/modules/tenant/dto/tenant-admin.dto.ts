@@ -1,7 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
+  IsDateString,
   IsEmail,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
@@ -326,6 +329,36 @@ export class CreateUpgradeRequestDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100000)
+  additionalSeats?: number;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  additionalModuleKeys?: string[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  requestedEffectiveDate?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(160)
+  contactPersonName?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  businessReason?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   @MaxLength(2000)
   note?: string;
@@ -334,4 +367,10 @@ export class CreateUpgradeRequestDto {
   @IsOptional()
   @IsEmail()
   billingContactEmail?: string;
+}
+
+export class AssignSetupOwnersDto {
+  @ApiProperty({ description: 'Map of setup step key to owner user id' })
+  @IsObject()
+  assignments!: Record<string, string>;
 }

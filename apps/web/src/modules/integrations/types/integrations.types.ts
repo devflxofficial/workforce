@@ -2,8 +2,12 @@ export interface IntegrationItem {
   id: string;
   category: string;
   configured: boolean;
-  status: 'NOT_CONFIGURED' | 'CONFIGURED' | string;
+  status: string;
   configureHref: string;
+  tenantIntegrationId?: string | null;
+  name?: string | null;
+  lastSuccessAt?: string | null;
+  lastFailureAt?: string | null;
 }
 
 export const INTEGRATION_CATEGORIES = [

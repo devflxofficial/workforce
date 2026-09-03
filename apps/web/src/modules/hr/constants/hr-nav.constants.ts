@@ -1,0 +1,183 @@
+import { ROUTES } from '../../../constants/routes.constants';
+import { ATTENDANCE_CAPTURE_PERMISSIONS } from '../../attendance/constants/attendance-capture.constants';
+import { SHIFT_PERMISSIONS, ROSTER_PERMISSIONS } from '../../shifts/constants/shift.constants';
+import {
+  ATTENDANCE_PERMISSIONS,
+  DOCUMENTS_PERMISSIONS,
+  EMPLOYEE_PERMISSIONS,
+  LEAVE_PERMISSIONS,
+} from '../../../lib/permissions/constants';
+import type { TenantNavItemDef } from '../../tenant/constants/tenant-admin-nav.constants';
+
+/** UX Specification §7.3 — HR Admin sidebar (SCR-HR-SID-01). */
+export const HR_NAV_ITEMS: readonly TenantNavItemDef[] = [
+  {
+    key: 'home',
+    labelKey: 'tenant.nav.home',
+    href: ROUTES.TENANT.DASHBOARD,
+    status: 'available',
+  },
+  {
+    key: 'hrDashboard',
+    labelKey: 'tenant.nav.hrDashboard',
+    href: ROUTES.TENANT.HR.ROOT,
+    status: 'available',
+    permission: EMPLOYEE_PERMISSIONS.HR_DASHBOARD_READ,
+  },
+  {
+    key: 'people',
+    labelKey: 'tenant.nav.employees',
+    href: ROUTES.TENANT.EMPLOYEES.ROOT,
+    status: 'available',
+    permission: EMPLOYEE_PERMISSIONS.EMPLOYEE_READ,
+    moduleKey: 'employees',
+  },
+  {
+    key: 'onboarding',
+    labelKey: 'tenant.nav.onboarding',
+    href: ROUTES.TENANT.DOCUMENTS.ONBOARDING,
+    status: 'available',
+    permission: DOCUMENTS_PERMISSIONS.ONBOARDING_DASHBOARD_READ,
+    moduleKey: 'documents',
+  },
+  {
+    key: 'attendance',
+    labelKey: 'tenant.nav.attendance',
+    href: ROUTES.TENANT.ATTENDANCE.ROOT,
+    status: 'available',
+    permission: ATTENDANCE_PERMISSIONS.RECORD_READ,
+    moduleKey: 'attendance',
+    children: [
+      {
+        key: 'attendance-overview',
+        labelKey: 'tenant.nav.attendanceOverview',
+        href: ROUTES.TENANT.ATTENDANCE.ROOT,
+        status: 'available',
+      },
+      {
+        key: 'attendance-records',
+        labelKey: 'tenant.nav.timeTracking',
+        href: ROUTES.TENANT.ATTENDANCE.RECORDS,
+        status: 'available',
+      },
+      {
+        key: 'attendance-exceptions',
+        labelKey: 'tenant.nav.attendanceExceptions',
+        href: ROUTES.TENANT.ATTENDANCE.EXCEPTIONS,
+        status: 'available',
+        permission: ATTENDANCE_PERMISSIONS.EXCEPTION_READ,
+      },
+      {
+        key: 'attendance-period-lock',
+        labelKey: 'tenant.nav.periodLock',
+        href: ROUTES.TENANT.ATTENDANCE.PERIOD_LOCK,
+        status: 'available',
+        permission: ATTENDANCE_PERMISSIONS.PERIOD_LOCK,
+      },
+      {
+        key: 'attendance-policies',
+        labelKey: 'tenant.nav.attendancePolicies',
+        href: ROUTES.TENANT.ATTENDANCE.POLICIES,
+        status: 'available',
+      },
+      {
+        key: 'attendance-capture',
+        labelKey: 'tenant.nav.captureOverview',
+        href: ROUTES.TENANT.ATTENDANCE.CAPTURE,
+        status: 'available',
+        permission: ATTENDANCE_CAPTURE_PERMISSIONS.DEVICE_HEARTBEAT_READ,
+      },
+      {
+        key: 'attendance-devices',
+        labelKey: 'tenant.nav.captureDevices',
+        href: ROUTES.TENANT.ATTENDANCE.DEVICES,
+        status: 'available',
+        permission: ATTENDANCE_CAPTURE_PERMISSIONS.DEVICE_READ,
+      },
+      {
+        key: 'attendance-geofences',
+        labelKey: 'tenant.nav.captureGeofences',
+        href: ROUTES.TENANT.ATTENDANCE.GEOFENCES,
+        status: 'available',
+        permission: ATTENDANCE_CAPTURE_PERMISSIONS.GEOFENCE_READ,
+      },
+      {
+        key: 'attendance-offline',
+        labelKey: 'tenant.nav.captureOfflineSessions',
+        href: ROUTES.TENANT.ATTENDANCE.OFFLINE_SESSIONS,
+        status: 'available',
+        permission: ATTENDANCE_CAPTURE_PERMISSIONS.OFFLINE_READ,
+      },
+    ],
+  },
+  {
+    key: 'shifts',
+    labelKey: 'tenant.nav.shiftsRosters',
+    href: ROUTES.TENANT.SHIFTS.ROOT,
+    status: 'available',
+    permission: SHIFT_PERMISSIONS.READ,
+    moduleKey: 'shifts',
+    children: [
+      {
+        key: 'shifts-catalogue',
+        labelKey: 'tenant.nav.shifts',
+        href: ROUTES.TENANT.SHIFTS.ROOT,
+        status: 'available',
+        permission: SHIFT_PERMISSIONS.READ,
+      },
+      {
+        key: 'roster',
+        labelKey: 'tenant.nav.roster',
+        href: ROUTES.TENANT.SHIFTS.ROSTER,
+        status: 'available',
+        permission: ROSTER_PERMISSIONS.READ,
+      },
+      {
+        key: 'shifts-assign',
+        labelKey: 'tenant.nav.shiftAssign',
+        href: ROUTES.TENANT.SHIFTS.ASSIGN,
+        status: 'available',
+        permission: ROSTER_PERMISSIONS.ASSIGN,
+      },
+    ],
+  },
+  {
+    key: 'leave',
+    labelKey: 'tenant.nav.leave',
+    href: ROUTES.TENANT.LEAVE.ROOT,
+    status: 'available',
+    permission: LEAVE_PERMISSIONS.REQUEST_READ,
+    moduleKey: 'leave',
+  },
+  {
+    key: 'approvals',
+    labelKey: 'tenant.nav.approvals',
+    href: ROUTES.TENANT.APPROVALS.ROOT,
+    status: 'available',
+    permission: LEAVE_PERMISSIONS.REQUEST_APPROVE,
+    moduleKey: 'approvals',
+  },
+  {
+    key: 'documents',
+    labelKey: 'tenant.nav.documentsLibrary',
+    href: ROUTES.TENANT.DOCUMENTS.ROOT,
+    status: 'available',
+    permission: DOCUMENTS_PERMISSIONS.EMPLOYEE_DOCUMENT_READ,
+    moduleKey: 'documents',
+  },
+  {
+    key: 'reports',
+    labelKey: 'tenant.nav.reports',
+    href: ROUTES.TENANT.REPORTS.ROOT,
+    status: 'available',
+    permission: EMPLOYEE_PERMISSIONS.EMPLOYEE_READ,
+    moduleKey: 'reports',
+  },
+  {
+    key: 'hrSettings',
+    labelKey: 'tenant.nav.hrSettings',
+    href: ROUTES.TENANT.HR.SETTINGS,
+    status: 'available',
+    permission: EMPLOYEE_PERMISSIONS.HR_DASHBOARD_READ,
+  },
+] as const;

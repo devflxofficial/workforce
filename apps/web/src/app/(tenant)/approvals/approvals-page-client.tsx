@@ -23,6 +23,23 @@ export function ApprovalsPageClient() {
           { label: tn('approvals') },
         ]}
       />
+      <ul className="flex flex-wrap gap-2">
+        <li>
+          <Link href={ROUTES.TENANT.APPROVALS.WORKFLOWS} className="text-body-sm text-brand-blue-600">
+            {t('workflows.title')}
+          </Link>
+        </li>
+        <li>
+          <Link href={ROUTES.TENANT.APPROVALS.DELEGATION} className="text-body-sm text-brand-blue-600">
+            {t('delegation.title')}
+          </Link>
+        </li>
+        <li>
+          <Link href={ROUTES.TENANT.APPROVALS.HISTORY} className="text-body-sm text-brand-blue-600">
+            {t('history.title')}
+          </Link>
+        </li>
+      </ul>
       <h2 className="text-title-md font-semibold text-text-primary">{t('tabs.assigned')}</h2>
       {inbox.isLoading ? (
         <div className="flex justify-center py-12">

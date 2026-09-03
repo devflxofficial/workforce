@@ -81,6 +81,10 @@ export class TenantAdminRepository {
       admins,
       attendancePolicies,
       employees,
+      leaveTypes,
+      payrollGroups,
+      activeIntegrations,
+      pendingInvites,
     ] = await Promise.all([
       this.prisma.legalEntity.count({ where: { tenantId } }),
       this.prisma.branch.count({ where: { tenantId } }),
@@ -94,8 +98,45 @@ export class TenantAdminRepository {
       }),
       this.prisma.attendancePolicy.count({ where: { tenantId } }),
       this.prisma.employee.count({ where: { tenantId } }),
+      this.prisma.leaveType.count({ where: { tenantId } }),
+      this.prisma.payrollGroup.count({ where: { tenantId } }),
+      this.prisma.tenantIntegration.count({ where: { tenantId, status: 'ACTIVE' } }),
+      this.prisma.userInvitation.count({
+        where: {
+          tenantId,
+          acceptedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+      }),
     ]);
-    return { legalEntities, branches, departments, admins, attendancePolicies, employees };
+    return {
+      legalEntities,
+      branches,
+      departments,
+      admins,
+      attendancePolicies,
+      employees,
+      leaveTypes,
+      payrollGroups,
+      activeIntegrations,
+      pendingInvites,
+    };
+  }
+
+  async updateSetupStepOwners(
+    tenantId: string,
+    assignments: Record<string, string>,
+    actorId: string,
+  ) {
+    const owners = Object.fromEntries(
+      Object.entries(assignments).filter(([k, v]) => k && v),
+    );
+    return this.upsertSettings(tenantId, {
+      tenantId,
+      setupStepOwners: owners,
+      createdBy: actorId,
+      updatedBy: actorId,
+    });
   }
 
   upsertSettings(
@@ -161,6 +202,20 @@ export class TenantAdminRepository {
       where: { status: 'ACTIVE' },
       orderBy: { name: 'asc' },
       select: { id: true, code: true, name: true, description: true },
+    });
+  }
+
+  findPlansWithEntitlements() {
+    return this.prisma.plan.findMany({
+      where: { status: 'ACTIVE' },
+      orderBy: { name: 'asc' },
+      include: {
+        planEntitlements: {
+          include: {
+            entitlement: { select: { id: true, code: true, dataType: true, label: true } },
+          },
+        },
+      },
     });
   }
 }

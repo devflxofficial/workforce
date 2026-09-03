@@ -38,7 +38,34 @@ export function IntegrationsPageClient({ title, description }: IntegrationsPageC
         </p>
       ) : null}
       {!isLoading && !isError ? (
-        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <>
+          <ul className="mb-4 flex flex-wrap gap-2">
+            <li>
+              <Link
+                href={ROUTES.TENANT.INTEGRATIONS.HEALTH}
+                className="rounded-md border border-border-default px-3 py-1.5 text-body-sm text-brand-blue-600"
+              >
+                {t('tenant.integrations.healthLink')}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.TENANT.INTEGRATIONS.CREDENTIALS}
+                className="rounded-md border border-border-default px-3 py-1.5 text-body-sm text-brand-blue-600"
+              >
+                {t('tenant.integrations.credentialsLink')}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={ROUTES.TENANT.INTEGRATIONS.BIOMETRIC}
+                className="rounded-md border border-border-default px-3 py-1.5 text-body-sm text-brand-blue-600"
+              >
+                {t('tenant.integrations.biometricLink')}
+              </Link>
+            </li>
+          </ul>
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => (
             <li key={item.id}>
               <article className="flex h-full flex-col rounded-xl border border-border-default bg-surface-primary p-4">
@@ -51,7 +78,7 @@ export function IntegrationsPageClient({ title, description }: IntegrationsPageC
                     : t('tenant.integrations.status.notConfigured')}
                 </p>
                 <Link
-                  href={item.configureHref || ROUTES.TENANT.SETTINGS}
+                  href={item.configureHref || ROUTES.TENANT.INTEGRATIONS.SETUP(item.id)}
                   className="mt-4 inline-flex w-fit rounded-md border border-border-default px-3 py-1.5 text-body-sm font-medium text-brand-blue-600 hover:bg-surface-canvas"
                 >
                   {t('tenant.integrations.configure')}
@@ -60,6 +87,7 @@ export function IntegrationsPageClient({ title, description }: IntegrationsPageC
             </li>
           ))}
         </ul>
+        </>
       ) : null}
     </div>
   );

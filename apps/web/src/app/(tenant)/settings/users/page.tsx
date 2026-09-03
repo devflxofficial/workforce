@@ -9,11 +9,15 @@ import { EmptyState } from '../../../../components/feedback/empty-state';
 import { tenantAdminApi } from '../../../../modules/tenant/api/tenant-admin-api';
 import {
   tenantAdminKeys,
+  useAssignRole,
   useTenantInvitations,
   useTenantRoles,
   useTenantUser,
   useTenantUsers,
 } from '../../../../modules/tenant/hooks/use-tenant-admin';
+import { TenantSettingsGate } from '../../../../modules/tenant/components/tenant-settings-gate';
+import { TENANT_ADMIN_PERMISSIONS } from '../../../../modules/tenant/constants/tenant-admin.permissions';
+import { handleTenantMutationSuccess } from '../../../../modules/tenant/lib/tenant-toast';
 
 export default function UsersSettingsPage() {
   const t = useTranslations();
@@ -26,6 +30,8 @@ export default function UsersSettingsPage() {
   const selectedUser = useTenantUser(selectedUserId);
   const invitations = useTenantInvitations();
   const roles = useTenantRoles();
+  const assignRole = useAssignRole();
+  const [changeRoleId, setChangeRoleId] = useState('');
 
   const invite = useMutation({
     mutationFn: () =>
@@ -33,7 +39,8 @@ export default function UsersSettingsPage() {
         email,
         roleIds: roleId ? [roleId] : undefined,
       }),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      handleTenantMutationSuccess(res);
       setEmail('');
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.invitations() });
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.users() });
@@ -57,7 +64,8 @@ export default function UsersSettingsPage() {
   const rows = users.data?.data ?? [];
 
   return (
-    <div className="space-y-6">
+    <TenantSettingsGate permission={TENANT_ADMIN_PERMISSIONS.USER_READ}>
+      <div className="space-y-6">
       <PageHeader
         title={t('tenant.settings.users.title')}
         description={t('tenant.settings.users.description')}
@@ -66,13 +74,13 @@ export default function UsersSettingsPage() {
       <div className="flex flex-col gap-3 rounded-lg border border-border-default bg-surface-card p-4 sm:flex-row">
         <input
           className="flex-1 rounded-md border border-border-default px-3 py-2"
-          placeholder="Search"
+          placeholder={t('tenant.settings.usersTable.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <input
           className="flex-1 rounded-md border border-border-default px-3 py-2"
-          placeholder="email@company.com"
+          placeholder={t('tenant.settings.usersTable.emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -81,7 +89,7 @@ export default function UsersSettingsPage() {
           value={roleId}
           onChange={(e) => setRoleId(e.target.value)}
         >
-          <option value="">Role</option>
+          <option value="">{t('tenant.settings.usersTable.roleSelect')}</option>
           {(roles.data?.data ?? []).map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}
@@ -105,12 +113,13 @@ export default function UsersSettingsPage() {
           <table className="min-w-full text-left text-body-sm">
             <thead className="bg-surface-muted">
               <tr>
-                <th className="px-3 py-2">Name</th>
-                <th className="px-3 py-2">Email</th>
-                <th className="px-3 py-2">Role</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">MFA</th>
-                <th className="px-3 py-2">Actions</th>
+                <th className="px-3 py-2">{t('tenant.settings.usersTable.name')}</th>
+                <th className="px-3 py-2">{t('tenant.settings.usersTable.email')}</th>
+                <th className="px-3 py-2">{t('tenant.settings.usersTable.role')}</th>
+                <th className="px-3 py-2">{t('tenant.settings.usersTable.status')}</th>
+                <th className="px-3 py-2">{t('tenant.settings.usersTable.lastLogin')}</th>
+                <th className="px-3 py-2">{t('tenant.settings.usersTable.mfa')}</th>
+                <th className="px-3 py-2">{t('tenant.settings.usersTable.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -126,6 +135,7 @@ export default function UsersSettingsPage() {
                   <td className="px-3 py-2">{u.email}</td>
                   <td className="px-3 py-2">{u.roles.map((r) => r.name).join(', ')}</td>
                   <td className="px-3 py-2">{u.status}</td>
+                  <td className="px-3 py-2">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : '—'}</td>
                   <td className="px-3 py-2">{u.mfaStatus}</td>
                   <td className="space-x-2 px-3 py-2">
                     <button
@@ -185,36 +195,56 @@ export default function UsersSettingsPage() {
           {selectedUser.isLoading ? (
             <LoadingSpinner size="sm" />
           ) : (
+            <>
             <dl className="grid gap-3 text-body-sm sm:grid-cols-2">
               <div>
-                <dt className="text-caption text-text-secondary">Email</dt>
+                <dt className="text-caption text-text-secondary">{t('tenant.settings.usersTable.email')}</dt>
                 <dd className="font-medium">{selectedUser.data?.data.email ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-caption text-text-secondary">Status</dt>
+                <dt className="text-caption text-text-secondary">{t('tenant.settings.usersTable.status')}</dt>
                 <dd className="font-medium">{selectedUser.data?.data.status ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-caption text-text-secondary">Roles</dt>
+                <dt className="text-caption text-text-secondary">{t('tenant.settings.usersTable.role')}</dt>
                 <dd className="font-medium">
                   {selectedUser.data?.data.roles.map((r) => r.name).join(', ') || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-caption text-text-secondary">MFA</dt>
+                <dt className="text-caption text-text-secondary">{t('tenant.settings.usersTable.mfa')}</dt>
                 <dd className="font-medium">{selectedUser.data?.data.mfaStatus ?? '—'}</dd>
               </div>
-              <div>
-                <dt className="text-caption text-text-secondary">Require password reset</dt>
-                <dd className="font-medium">
-                  {selectedUser.data?.data.requirePasswordReset ? 'Yes' : 'No'}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-caption text-text-secondary">Require MFA</dt>
-                <dd className="font-medium">{selectedUser.data?.data.requireMfa ? 'Yes' : 'No'}</dd>
-              </div>
             </dl>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+              <label className="flex-1 space-y-1">
+                <span className="text-caption text-text-secondary">
+                  {t('tenant.settings.usersTable.changeRole')}
+                </span>
+                <select
+                  className="w-full rounded-md border border-border-default px-3 py-2"
+                  value={changeRoleId}
+                  onChange={(e) => setChangeRoleId(e.target.value)}
+                >
+                  <option value="">{t('tenant.settings.usersTable.roleSelect')}</option>
+                  {(roles.data?.data ?? []).map((r) => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                disabled={!changeRoleId || !selectedUserId || assignRole.isPending}
+                className="rounded-md bg-brand-blue-600 px-4 py-2 text-body-sm text-white disabled:opacity-60"
+                onClick={() => {
+                  if (!selectedUserId || !changeRoleId) return;
+                  void assignRole.mutateAsync({ roleId: changeRoleId, userId: selectedUserId });
+                }}
+              >
+                {t('tenant.settings.usersTable.changeRole')}
+              </button>
+            </div>
+            </>
           )}
         </aside>
       ) : null}
@@ -256,6 +286,7 @@ export default function UsersSettingsPage() {
           ))}
         </ul>
       </section>
-    </div>
+      </div>
+    </TenantSettingsGate>
   );
 }

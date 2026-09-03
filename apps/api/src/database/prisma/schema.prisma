@@ -321,6 +321,19 @@ model Tenant {
   leaveRequestDays       LeaveRequestDay[]
   payslips               Payslip[]
 
+  // Tenant Admin phase 2
+  holidayCalendars       HolidayCalendar[]
+  holidays               Holiday[]
+  customFieldDefinitions CustomFieldDefinition[]
+  payrollGroups          PayrollGroup[]
+  payrollCalendars       PayrollCalendar[]
+  payrollPeriods         PayrollPeriod[]
+  workflowDefinitions    WorkflowDefinition[]
+  approvalDelegations    ApprovalDelegation[]
+  workflowActions        WorkflowAction[]
+  tenantIntegrations     TenantIntegration[]
+  externalMappings       ExternalMapping[]
+
   @@index([status])
   @@index([deploymentRegionId])
   @@index([planId])
@@ -395,6 +408,7 @@ model TenantSettings {
   weekStart          Int?     @map("week_start")
   workingWeekPattern Json?    @map("working_week_pattern")
   enabledLocales     Json?    @map("enabled_locales")
+  setupStepOwners    Json     @default("{}") @map("setup_step_owners")
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy          String?  @map("created_by") @db.Uuid
   updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -442,13 +456,18 @@ enum TenantUpgradeRequestStatus {
 // ─── Tenant Upgrade Request — SCR-SUB-03 ──────────────────────────────────────
 
 model TenantUpgradeRequest {
-  id                  String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId            String                      @map("tenant_id") @db.Uuid
-  requestedPlanId     String?                     @map("requested_plan_id") @db.Uuid
-  requestedPlanKey    String?                     @map("requested_plan_key") @db.VarChar(80)
-  note                String?                     @db.Text
-  billingContactEmail String?                     @map("billing_contact_email") @db.VarChar(320)
-  status              TenantUpgradeRequestStatus  @default(PENDING)
+  id                    String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId              String                      @map("tenant_id") @db.Uuid
+  requestedPlanId       String?                     @map("requested_plan_id") @db.Uuid
+  requestedPlanKey      String?                     @map("requested_plan_key") @db.VarChar(80)
+  additionalSeats       Int?                        @map("additional_seats")
+  additionalModuleKeys  Json?                       @map("additional_module_keys")
+  requestedEffectiveDate DateTime?                  @map("requested_effective_date") @db.Date
+  contactPersonName     String?                     @map("contact_person_name") @db.VarChar(160)
+  businessReason        String?                     @map("business_reason") @db.Text
+  note                  String?                     @db.Text
+  billingContactEmail   String?                     @map("billing_contact_email") @db.VarChar(320)
+  status                TenantUpgradeRequestStatus  @default(PENDING)
   createdAt           DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy           String?                     @map("created_by") @db.Uuid
   updatedAt           DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -697,9 +716,11 @@ model TenantUsageSnapshot {
   snapshotDate       DateTime @db.Date
   activeEmployees    Int      @default(0)
   totalEmployees     Int      @default(0)
-  storageUsedBytes   BigInt   @default(0)
-  apiCallsMonth      Int      @default(0)
-  estimatedMrr       Decimal? @map("estimated_mrr") @db.Decimal(14, 2)
+  storageUsedBytes         BigInt   @default(0) @map("storage_used_bytes")
+  apiCallsMonth            Int      @default(0) @map("api_calls_month")
+  integrationEventVolume   Int      @default(0) @map("integration_event_volume")
+  exportVolume             Int      @default(0) @map("export_volume")
+  estimatedMrr             Decimal? @map("estimated_mrr") @db.Decimal(14, 2)
   moduleAdoptionJson Json?    @map("module_adoption_json")
   createdAt          DateTime @default(now()) @db.Timestamptz(6)
 
@@ -1278,6 +1299,8 @@ model LegalEntity {
   employees   Employee[]
   employmentRecords EmploymentRecord[]
 
+  holidayCalendars HolidayCalendar[]
+
   // M05 back-relations
   onboardingTemplates OnboardingTemplate[]
 
@@ -1318,6 +1341,8 @@ model Branch {
   departments Department[]
   employees   Employee[]
   employmentRecords EmploymentRecord[]
+
+  holidayCalendars HolidayCalendar[]
 
   // M06 Batch 2 back-relations
   attendancePolicies AttendancePolicy[]
@@ -2853,6 +2878,323 @@ model IntegrationReconciliationItem {
 
   @@index([connectionId, status])
   @@map("integration_reconciliation_item")
+}
+
+// ─── Tenant Admin Phase 2: Settings, Workflows, Integrations ─────────────────
+
+model HolidayCalendar {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String   @map("tenant_id") @db.Uuid
+  code          String   @db.VarChar(60)
+  name          String   @db.VarChar(160)
+  countryCode   String?  @map("country_code") @db.Char(2)
+  legalEntityId String?  @map("legal_entity_id") @db.Uuid
+  branchId      String?  @map("branch_id") @db.Uuid
+  status        String   @default("ACTIVE") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy     String?  @map("created_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy     String?  @map("updated_by") @db.Uuid
+  rowVersion    BigInt   @default(1) @map("row_version")
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  legalEntity LegalEntity? @relation(fields: [legalEntityId], references: [id], onDelete: SetNull)
+  branch      Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  holidays    Holiday[]
+
+  @@unique([tenantId, code], map: "holiday_calendar_tenant_code_uq")
+  @@index([tenantId], map: "holiday_calendar_tenant_id_idx")
+  @@map("holiday_calendar")
+}
+
+model Holiday {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String   @map("tenant_id") @db.Uuid
+  calendarId       String   @map("calendar_id") @db.Uuid
+  holidayDate      DateTime @map("holiday_date") @db.Date
+  name             String   @db.VarChar(160)
+  dayFraction      Decimal  @default(1) @map("day_fraction") @db.Decimal(3, 2)
+  paid             Boolean  @default(true)
+  recurrenceSource String?  @map("recurrence_source") @db.VarChar(80)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?  @map("created_by") @db.Uuid
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?  @map("updated_by") @db.Uuid
+  rowVersion       BigInt   @default(1) @map("row_version")
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  calendar HolidayCalendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, calendarId, holidayDate], map: "holiday_tenant_calendar_date_uq")
+  @@index([tenantId, calendarId], map: "holiday_tenant_calendar_idx")
+  @@map("holiday")
+}
+
+model CustomFieldDefinition {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  entityType     String   @map("entity_type") @db.VarChar(50)
+  fieldKey       String   @map("field_key") @db.VarChar(80)
+  label          String   @db.VarChar(160)
+  dataType       String   @map("data_type") @db.VarChar(20)
+  configuration  Json     @default("{}")
+  required       Boolean  @default(false)
+  classification String   @default("INTERNAL") @db.VarChar(20)
+  status         String   @default("ACTIVE") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?  @map("created_by") @db.Uuid
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?  @map("updated_by") @db.Uuid
+  rowVersion     BigInt   @default(1) @map("row_version")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, entityType, fieldKey], map: "custom_field_def_tenant_entity_key_uq")
+  @@index([tenantId], map: "custom_field_def_tenant_id_idx")
+  @@map("custom_field_definition")
+}
+
+model PayrollGroup {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  code      String   @db.VarChar(60)
+  name      String   @db.VarChar(160)
+  status    String   @default("ACTIVE") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?  @map("created_by") @db.Uuid
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?  @map("updated_by") @db.Uuid
+  rowVersion BigInt  @default(1) @map("row_version")
+
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payrollCalendars PayrollCalendar[]
+  payrollPeriods   PayrollPeriod[]
+
+  @@unique([tenantId, code], map: "payroll_group_tenant_code_uq")
+  @@index([tenantId], map: "payroll_group_tenant_id_idx")
+  @@map("payroll_group")
+}
+
+model PayrollCalendar {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  payrollGroupId String    @map("payroll_group_id") @db.Uuid
+  calendarYear   Int       @map("calendar_year")
+  status         String    @default("DRAFT") @db.VarChar(20)
+  publishedAt    DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy      String?   @map("updated_by") @db.Uuid
+  rowVersion     BigInt    @default(1) @map("row_version")
+
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payrollGroup PayrollGroup    @relation(fields: [payrollGroupId], references: [id], onDelete: Restrict)
+  periods      PayrollPeriod[]
+
+  @@unique([tenantId, payrollGroupId, calendarYear], map: "payroll_calendar_tenant_group_year_uq")
+  @@index([tenantId], map: "payroll_calendar_tenant_id_idx")
+  @@map("payroll_calendar")
+}
+
+model PayrollPeriod {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String   @map("tenant_id") @db.Uuid
+  payrollCalendarId  String   @map("payroll_calendar_id") @db.Uuid
+  payrollGroupId     String   @map("payroll_group_id") @db.Uuid
+  periodCode         String   @map("period_code") @db.VarChar(40)
+  periodStart        DateTime @map("period_start") @db.Date
+  periodEnd          DateTime @map("period_end") @db.Date
+  paymentDate        DateTime @map("payment_date") @db.Date
+  attendanceCutoffAt DateTime @map("attendance_cutoff_at") @db.Timestamptz(6)
+  adjustmentCutoffAt DateTime @map("adjustment_cutoff_at") @db.Timestamptz(6)
+  status             String   @default("NOT_OPEN") @db.VarChar(20)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?  @map("created_by") @db.Uuid
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?  @map("updated_by") @db.Uuid
+  rowVersion         BigInt   @default(1) @map("row_version")
+
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payrollCalendar PayrollCalendar @relation(fields: [payrollCalendarId], references: [id], onDelete: Cascade)
+  payrollGroup    PayrollGroup    @relation(fields: [payrollGroupId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, payrollGroupId, periodCode], map: "payroll_period_tenant_group_code_uq")
+  @@index([tenantId, payrollCalendarId], map: "payroll_period_tenant_calendar_idx")
+  @@map("payroll_period")
+}
+
+model WorkflowDefinition {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String   @map("tenant_id") @db.Uuid
+  code             String   @db.VarChar(80)
+  name             String   @db.VarChar(160)
+  requestType      String   @map("request_type") @db.VarChar(60)
+  status           String   @default("DRAFT") @db.VarChar(20)
+  currentVersionId String?  @map("current_version_id") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy        String?  @map("created_by") @db.Uuid
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy        String?  @map("updated_by") @db.Uuid
+  rowVersion       BigInt   @default(1) @map("row_version")
+
+  tenant   Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  versions WorkflowVersion[]
+
+  @@unique([tenantId, code], map: "workflow_definition_tenant_code_uq")
+  @@index([tenantId, requestType], map: "workflow_definition_tenant_type_idx")
+  @@map("workflow_definition")
+}
+
+model WorkflowVersion {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String    @map("tenant_id") @db.Uuid
+  definitionId       String    @map("definition_id") @db.Uuid
+  versionNo          Int       @map("version_no")
+  applicability      Json      @default("{}")
+  slaConfiguration   Json      @default("{}") @map("sla_configuration")
+  effectiveFrom      DateTime  @map("effective_from") @db.Timestamptz(6)
+  effectiveTo        DateTime? @map("effective_to") @db.Timestamptz(6)
+  publishedByUserId  String?   @map("published_by_user_id") @db.Uuid
+  publishedAt        DateTime? @map("published_at") @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy          String?   @map("created_by") @db.Uuid
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy          String?   @map("updated_by") @db.Uuid
+  rowVersion         BigInt    @default(1) @map("row_version")
+
+  definition WorkflowDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  stages     WorkflowStage[]
+
+  @@unique([tenantId, definitionId, versionNo], map: "workflow_version_tenant_def_ver_uq")
+  @@index([tenantId, definitionId], map: "workflow_version_tenant_def_idx")
+  @@map("workflow_version")
+}
+
+model WorkflowStage {
+  id                      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId                String @map("tenant_id") @db.Uuid
+  workflowVersionId       String @map("workflow_version_id") @db.Uuid
+  sequenceNo              Int    @map("sequence_no")
+  stageName               String @map("stage_name") @db.VarChar(160)
+  approvalMode            String @default("SEQUENTIAL") @map("approval_mode") @db.VarChar(30)
+  approverSource          String @map("approver_source") @db.VarChar(40)
+  approverConfiguration   Json   @default("{}") @map("approver_configuration")
+  minimumApprovals        Int    @default(1) @map("minimum_approvals")
+  dueAfterMinutes         Int?   @map("due_after_minutes")
+  escalationConfiguration Json   @default("{}") @map("escalation_configuration")
+  selfApprovalProhibited  Boolean @default(true) @map("self_approval_prohibited")
+
+  version WorkflowVersion @relation(fields: [workflowVersionId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, workflowVersionId, sequenceNo], map: "workflow_stage_tenant_ver_seq_uq")
+  @@map("workflow_stage")
+}
+
+model ApprovalDelegation {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
+  delegatorUserId String   @map("delegator_user_id") @db.Uuid
+  delegateUserId  String   @map("delegate_user_id") @db.Uuid
+  requestTypes    String[] @map("request_types")
+  scope           Json     @default("{}")
+  startsAt        DateTime @map("starts_at") @db.Timestamptz(6)
+  endsAt          DateTime @map("ends_at") @db.Timestamptz(6)
+  reason          String   @db.Text
+  status          String   @default("ACTIVE") @db.VarChar(20)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?  @map("created_by") @db.Uuid
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?  @map("updated_by") @db.Uuid
+  rowVersion      BigInt   @default(1) @map("row_version")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, delegatorUserId], map: "approval_delegation_delegator_idx")
+  @@index([tenantId, delegateUserId], map: "approval_delegation_delegate_idx")
+  @@map("approval_delegation")
+}
+
+model WorkflowAction {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String   @map("tenant_id") @db.Uuid
+  requestType       String   @map("request_type") @db.VarChar(60)
+  requestId         String   @map("request_id") @db.Uuid
+  actionType        String   @map("action_type") @db.VarChar(40)
+  actorUserId       String?  @map("actor_user_id") @db.Uuid
+  comment           String?  @db.Text
+  metadata          Json     @default("{}")
+  occurredAt        DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  correlationId     String?  @map("correlation_id") @db.Uuid
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, requestType, requestId], map: "workflow_action_tenant_request_idx")
+  @@index([tenantId, occurredAt], map: "workflow_action_tenant_occurred_idx")
+  @@map("workflow_action")
+}
+
+model TenantIntegration {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  connectionType  String    @map("connection_type") @db.VarChar(40)
+  name            String    @db.VarChar(160)
+  adapterCode     String    @map("adapter_code") @db.VarChar(100)
+  adapterVersion  Int       @default(1) @map("adapter_version")
+  configuration   Json      @default("{}")
+  status          String    @default("DRAFT") @db.VarChar(20)
+  lastSuccessAt   DateTime? @map("last_success_at") @db.Timestamptz(6)
+  lastFailureAt   DateTime? @map("last_failure_at") @db.Timestamptz(6)
+  checkpoint      Json      @default("{}")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy       String?   @map("created_by") @db.Uuid
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy       String?   @map("updated_by") @db.Uuid
+  rowVersion      BigInt    @default(1) @map("row_version")
+
+  tenant    Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  syncRuns  TenantIntegrationSyncRun[]
+  mappings  ExternalMapping[]
+
+  @@index([tenantId, connectionType, status], map: "tenant_integration_tenant_type_status_idx")
+  @@map("tenant_integration")
+}
+
+model TenantIntegrationSyncRun {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  integrationId  String    @map("integration_id") @db.Uuid
+  status         String    @db.VarChar(20)
+  itemsProcessed Int       @default(0) @map("items_processed")
+  errorCount     Int       @default(0) @map("error_count")
+  startedAt      DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime? @map("finished_at") @db.Timestamptz(6)
+  message        String?   @db.Text
+
+  integration TenantIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId, startedAt], map: "tenant_integration_sync_run_integration_idx")
+  @@map("tenant_integration_sync_run")
+}
+
+model ExternalMapping {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  integrationId String    @map("integration_id") @db.Uuid
+  mappingType   String    @map("mapping_type") @db.VarChar(40)
+  externalId    String    @map("external_id") @db.VarChar(200)
+  internalId    String?   @map("internal_id") @db.Uuid
+  status        String    @default("UNMAPPED") @db.VarChar(20)
+  lastEventAt   DateTime? @map("last_event_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  integration TenantIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, integrationId, mappingType, externalId], map: "external_mapping_tenant_ext_uq")
+  @@index([tenantId, status], map: "external_mapping_tenant_status_idx")
+  @@map("external_mapping")
 }
 
 model AuditExportJob {

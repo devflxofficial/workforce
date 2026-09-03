@@ -49,7 +49,10 @@ import { WorkflowModule } from './modules/workflow/workflow.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
 import { TenantModule } from './modules/tenant/tenant.module';
+import { TenantSettingsModule } from './modules/tenant-settings/tenant-settings.module';
 import { PlatformInfrastructureModule } from './platform/platform-infrastructure.module';
+import { MessageCatalogueModule } from './common/messages/message-catalogue.module';
+import { RealtimeModule } from './realtime/realtime.module';
 
 @Module({
   imports: [
@@ -82,6 +85,7 @@ import { PlatformInfrastructureModule } from './platform/platform-infrastructure
       { name: 'device-control', ttl: parseInt(process.env['THROTTLE_DEVICE_CONTROL_TTL'] ?? '60000', 10), limit: parseInt(process.env['THROTTLE_DEVICE_CONTROL_LIMIT'] ?? '120', 10) },
     ]),
     PrismaModule,
+    MessageCatalogueModule,
     PlatformInfrastructureModule,
     HealthModule,
     AuthenticationModule,
@@ -97,6 +101,8 @@ import { PlatformInfrastructureModule } from './platform/platform-infrastructure
     IntegrationsModule,
     ShiftsModule,
     TenantModule,
+    TenantSettingsModule,
+    RealtimeModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

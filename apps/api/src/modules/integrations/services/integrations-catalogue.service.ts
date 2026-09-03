@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
 export const INTEGRATION_CATALOGUE = [
-  { id: 'biometric', category: 'biometric', configureHref: '/attendance/devices' },
+  { id: 'biometric', category: 'biometric', configureHref: '/integrations/biometric' },
   { id: 'sso', category: 'sso', configureHref: '/settings/security' },
-  { id: 'payroll_export', category: 'payroll_export', configureHref: '/settings' },
-  { id: 'finance', category: 'finance', configureHref: '/settings' },
-  { id: 'email', category: 'email', configureHref: '/settings' },
-  { id: 'sms', category: 'sms', configureHref: '/settings' },
-  { id: 'webhook', category: 'webhook', configureHref: '/settings' },
-  { id: 'api', category: 'api', configureHref: '/settings' },
+  { id: 'payroll_export', category: 'payroll_export', configureHref: '/payroll' },
+  { id: 'finance', category: 'finance', configureHref: '/integrations/credentials' },
+  { id: 'email', category: 'email', configureHref: '/integrations/email/setup' },
+  { id: 'sms', category: 'sms', configureHref: '/integrations/sms/setup' },
+  { id: 'webhook', category: 'webhook', configureHref: '/integrations/webhook/setup' },
+  { id: 'api', category: 'api', configureHref: '/integrations/credentials' },
 ] as const;
 
 @Injectable()

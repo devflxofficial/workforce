@@ -34,6 +34,7 @@ import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
 import { TenantAdminService } from '../services/tenant-admin.service';
 import {
   CreateUpgradeRequestDto,
+  AssignSetupOwnersDto,
   UpdateTenantBrandingDto,
   UpdateTenantProfileDto,
   UpdateTenantRegionalDto,
@@ -164,6 +165,20 @@ export class TenantAdminController {
     return this.service.getSetupStatus(this.requireTenant(user));
   }
 
+  @Patch('setup-status/owners')
+  @RequirePermissions(TENANT_ADMIN_PERMISSIONS.SETTINGS_MANAGE)
+  @ApiOperation({ summary: 'Assign setup checklist step owners (SCR-TEN-01)' })
+  assignSetupOwners(
+    @Body() dto: AssignSetupOwnersDto,
+    @CurrentUser() user: CurrentUserContext,
+  ) {
+    return this.service.assignSetupStepOwners(
+      this.requireTenant(user),
+      dto.assignments,
+      user.userId,
+    );
+  }
+
   @Get('subscription')
   @RequirePermissions(TENANT_ADMIN_PERMISSIONS.SUBSCRIPTION_READ)
   @ApiOperation({ summary: 'Subscription overview (SCR-SUB-01)' })
@@ -200,6 +215,13 @@ export class TenantAdminController {
   @ApiOperation({ summary: 'List upgrade requests for current tenant' })
   listUpgradeRequests(@CurrentUser() user: CurrentUserContext) {
     return this.service.listUpgradeRequests(this.requireTenant(user));
+  }
+
+  @Get('plans/compare')
+  @RequirePermissions(TENANT_ADMIN_PERMISSIONS.SUBSCRIPTION_READ)
+  @ApiOperation({ summary: 'Plan comparison matrix (SCR-SUB-02)' })
+  comparePlans(@CurrentUser() user: CurrentUserContext) {
+    return this.service.comparePlans(this.requireTenant(user));
   }
 
   @Get('security-policy')

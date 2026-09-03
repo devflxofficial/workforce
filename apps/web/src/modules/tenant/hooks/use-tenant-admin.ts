@@ -1,7 +1,12 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { tenantAdminApi } from '../api/tenant-admin-api';
+import {
+  handleTenantMutationError,
+  handleTenantMutationSuccess,
+} from '../lib/tenant-toast';
 
 export const tenantAdminKeys = {
   all: ['tenant-admin'] as const,
@@ -11,6 +16,7 @@ export const tenantAdminKeys = {
   modules: () => [...tenantAdminKeys.all, 'modules'] as const,
   setup: () => [...tenantAdminKeys.all, 'setup'] as const,
   subscription: () => [...tenantAdminKeys.all, 'subscription'] as const,
+  planCompare: () => [...tenantAdminKeys.all, 'plan-compare'] as const,
   upgradeRequests: () => [...tenantAdminKeys.all, 'upgrade-requests'] as const,
   usage: () => [...tenantAdminKeys.all, 'usage'] as const,
   security: () => [...tenantAdminKeys.all, 'security'] as const,
@@ -21,7 +27,20 @@ export const tenantAdminKeys = {
   permissions: () => [...tenantAdminKeys.all, 'permissions'] as const,
   sessions: () => [...tenantAdminKeys.all, 'sessions'] as const,
   audit: (params?: object) => [...tenantAdminKeys.all, 'audit', params] as const,
+  auditSummary: () => [...tenantAdminKeys.all, 'audit-summary'] as const,
+  auditDetail: (id?: string) => [...tenantAdminKeys.all, 'audit-detail', id] as const,
 };
+
+function useMutationToastHandlers(onSuccessExtra?: () => void) {
+  const t = useTranslations();
+  return {
+    onSuccess: (res: unknown) => {
+      handleTenantMutationSuccess(res);
+      onSuccessExtra?.();
+    },
+    onError: (err: unknown) => handleTenantMutationError(err, t('errors.saveFailed')),
+  };
+}
 
 export function useTenantProfile() {
   return useQuery({ queryKey: tenantAdminKeys.profile(), queryFn: () => tenantAdminApi.getProfile() });
@@ -31,10 +50,10 @@ export function useUpdateTenantProfile() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: tenantAdminApi.updateProfile,
-    onSuccess: () => {
+    ...useMutationToastHandlers(() => {
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.profile() });
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.setup() });
-    },
+    }),
   });
 }
 
@@ -50,10 +69,10 @@ export function useUpsertTenantBranding() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: tenantAdminApi.upsertBranding,
-    onSuccess: () => {
+    ...useMutationToastHandlers(() => {
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.branding() });
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.setup() });
-    },
+    }),
   });
 }
 
@@ -62,10 +81,10 @@ export function useUploadTenantLogo() {
   return useMutation({
     mutationFn: ({ file, kind }: { file: File; kind: 'logo' | 'loginLogo' | 'favicon' }) =>
       tenantAdminApi.uploadLogo(file, kind),
-    onSuccess: () => {
+    ...useMutationToastHandlers(() => {
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.branding() });
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.setup() });
-    },
+    }),
   });
 }
 
@@ -77,10 +96,10 @@ export function useUpdateTenantRegional() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: tenantAdminApi.updateRegional,
-    onSuccess: () => {
+    ...useMutationToastHandlers(() => {
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.regional() });
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.setup() });
-    },
+    }),
   });
 }
 
@@ -96,6 +115,17 @@ export function useSetupStatus() {
   });
 }
 
+export function useAssignSetupOwners() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (assignments: Record<string, string>) =>
+      tenantAdminApi.assignSetupOwners(assignments),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: tenantAdminKeys.setup() });
+    },
+  });
+}
+
 export function useTenantSubscription() {
   return useQuery({
     queryKey: tenantAdminKeys.subscription(),
@@ -107,14 +137,21 @@ export function useTenantUsage() {
   return useQuery({ queryKey: tenantAdminKeys.usage(), queryFn: () => tenantAdminApi.getUsage() });
 }
 
+export function usePlanComparison() {
+  return useQuery({
+    queryKey: tenantAdminKeys.planCompare(),
+    queryFn: () => tenantAdminApi.comparePlans(),
+  });
+}
+
 export function useCreateUpgradeRequest() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: tenantAdminApi.createUpgradeRequest,
-    onSuccess: () => {
+    ...useMutationToastHandlers(() => {
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.subscription() });
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.upgradeRequests() });
-    },
+    }),
   });
 }
 
@@ -136,7 +173,7 @@ export function useUpdateSecurityPolicy() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: tenantAdminApi.updateSecurityPolicy,
-    onSuccess: () => void qc.invalidateQueries({ queryKey: tenantAdminKeys.security() }),
+    ...useMutationToastHandlers(() => void qc.invalidateQueries({ queryKey: tenantAdminKeys.security() })),
   });
 }
 
@@ -170,11 +207,35 @@ export function useDeleteTenantRole() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: tenantAdminApi.deleteRole,
-    onSuccess: () => {
+    ...useMutationToastHandlers(() => {
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.roles() });
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.users() });
       void qc.invalidateQueries({ queryKey: tenantAdminKeys.setup() });
-    },
+    }),
+  });
+}
+
+export function useAssignRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ roleId, userId }: { roleId: string; userId: string }) =>
+      tenantAdminApi.assignRole(roleId, userId),
+    ...useMutationToastHandlers(() => {
+      void qc.invalidateQueries({ queryKey: tenantAdminKeys.users() });
+      void qc.invalidateQueries({ queryKey: tenantAdminKeys.roles() });
+    }),
+  });
+}
+
+export function useRevokeRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ roleId, userId }: { roleId: string; userId: string }) =>
+      tenantAdminApi.revokeRole(roleId, userId),
+    ...useMutationToastHandlers(() => {
+      void qc.invalidateQueries({ queryKey: tenantAdminKeys.users() });
+      void qc.invalidateQueries({ queryKey: tenantAdminKeys.roles() });
+    }),
   });
 }
 
@@ -197,9 +258,28 @@ export function useTenantAudit(params?: {
   pageSize?: number;
   module?: string;
   action?: string;
+  actorId?: string;
+  severity?: string;
+  fromDate?: string;
+  toDate?: string;
 }) {
   return useQuery({
     queryKey: tenantAdminKeys.audit(params),
     queryFn: () => tenantAdminApi.listAuditEvents(params),
+  });
+}
+
+export function useAuditSummary() {
+  return useQuery({
+    queryKey: tenantAdminKeys.auditSummary(),
+    queryFn: () => tenantAdminApi.getAuditSummary(),
+  });
+}
+
+export function useAuditEventDetail(id?: string) {
+  return useQuery({
+    queryKey: tenantAdminKeys.auditDetail(id),
+    queryFn: () => tenantAdminApi.getAuditEvent(id!),
+    enabled: Boolean(id),
   });
 }

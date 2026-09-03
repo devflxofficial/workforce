@@ -7,22 +7,30 @@ import { LanguageSwitcher } from './language-switcher';
 import { HelpMenu } from './platform/help-menu';
 import { TenantGlobalSearch } from './tenant/tenant-global-search';
 import { TenantNameBadge } from './tenant/tenant-name-badge';
+import { CurrentModuleBadge } from './tenant/current-module-badge';
 import { TenantNotificationsBell } from './tenant/tenant-notifications-bell';
 import { TenantQuickCreate } from './tenant/tenant-quick-create';
 import { TenantUserMenu } from './tenant/tenant-user-menu';
-import type { NavItem } from './sidebar-nav';
+import { TenantRealtimeProvider } from './tenant/tenant-realtime-provider';
 import type { ReactNode } from 'react';
 import { useAuth } from '../../lib/auth/auth-provider';
-import { useTenantBranding } from '../../modules/tenant/hooks/use-tenant-admin';
+import { useTenantBranding, useTenantProfile } from '../../modules/tenant/hooks/use-tenant-admin';
+import { useTenantHomeHref, useTenantNavItems } from '../../modules/tenant/hooks/use-tenant-nav';
 import { APP_CONSTANTS } from '../../constants/app.constants';
-import { ROUTES } from '../../constants/routes.constants';
 
 interface TenantShellProps {
   children: ReactNode;
-  navItems: NavItem[];
 }
 
-function TenantLogo({ compact = false, forSidebar = false }: { compact?: boolean; forSidebar?: boolean }) {
+function TenantLogo({
+  compact = false,
+  forSidebar = false,
+  homeHref,
+}: {
+  compact?: boolean;
+  forSidebar?: boolean;
+  homeHref: string;
+}) {
   const t = useTranslations();
   const { data } = useTenantBranding();
   const branding = data?.data;
@@ -34,7 +42,7 @@ function TenantLogo({ compact = false, forSidebar = false }: { compact?: boolean
 
   return (
     <Link
-      href={ROUTES.TENANT.HR.ROOT}
+      href={homeHref}
       title={name}
       className="flex min-w-0 items-center gap-2"
     >
@@ -101,11 +109,16 @@ const NAV_ICONS: Record<string, ReactNode> = {
   audit: <NavIcon d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
 };
 
-export function TenantShell({ children, navItems }: TenantShellProps) {
+export function TenantShell({ children }: TenantShellProps) {
   const t = useTranslations();
   const { user, logout } = useAuth();
+  const navItems = useTenantNavItems();
+  const homeHref = useTenantHomeHref();
+  const { data: profileData } = useTenantProfile();
   const displayName = user?.displayName ?? t('tenant.admin.label');
   const roleLabel = user?.roles[0] ?? t('tenant.admin.roleLabel');
+  const tenantName =
+    profileData?.data?.displayName?.trim() || displayName;
 
   const itemsWithIcons = navItems.map((item) => ({
     ...item,
@@ -119,11 +132,26 @@ export function TenantShell({ children, navItems }: TenantShellProps) {
   return (
     <AppShell
       navItems={itemsWithIcons}
-      logo={<TenantLogo forSidebar />}
-      sidebarLogo={<TenantLogo forSidebar />}
-      sidebarLogoCollapsed={<TenantLogo compact forSidebar />}
+      logo={
+        <div className="min-w-0">
+          <TenantLogo forSidebar homeHref={homeHref} />
+          <p className="mt-1 truncate text-caption text-slate-400">{tenantName}</p>
+        </div>
+      }
+      sidebarLogo={
+        <div className="min-w-0">
+          <TenantLogo forSidebar homeHref={homeHref} />
+          <p className="mt-1 truncate text-caption text-slate-400">{tenantName}</p>
+        </div>
+      }
+      sidebarLogoCollapsed={<TenantLogo compact forSidebar homeHref={homeHref} />}
       headerLogo={null}
-      headerLeading={<TenantNameBadge />}
+      headerLeading={
+        <>
+          <TenantNameBadge />
+          <CurrentModuleBadge />
+        </>
+      }
       headerCenter={<TenantGlobalSearch />}
       roleLabel={roleLabel}
       userLabel={displayName}
@@ -151,6 +179,7 @@ export function TenantShell({ children, navItems }: TenantShellProps) {
         </>
       }
     >
+      <TenantRealtimeProvider />
       {children}
     </AppShell>
   );

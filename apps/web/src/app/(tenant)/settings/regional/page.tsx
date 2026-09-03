@@ -11,12 +11,21 @@ import {
 } from '../../../../modules/tenant/hooks/use-tenant-admin';
 
 const LOCALE_OPTIONS = [
-  { value: 'en', label: 'English' },
-  { value: 'ur', label: 'Urdu' },
+  { value: 'en', labelKey: 'en' },
+  { value: 'ur', labelKey: 'ur' },
 ] as const;
 
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+const WEEKDAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 const DEFAULT_WORKING_WEEK = [true, true, true, true, true, false, false];
+
+const REGIONAL_FIELDS = [
+  'defaultLocale',
+  'dateFormat',
+  'numberFormat',
+  'currencyDisplay',
+  'defaultTimezone',
+  'weekStart',
+] as const;
 
 export default function RegionalSettingsPage() {
   const t = useTranslations();
@@ -81,18 +90,11 @@ export default function RegionalSettingsPage() {
           });
         })}
       >
-        {(
-          [
-            'defaultLocale',
-            'dateFormat',
-            'numberFormat',
-            'currencyDisplay',
-            'defaultTimezone',
-            'weekStart',
-          ] as const
-        ).map((name) => (
+        {REGIONAL_FIELDS.map((name) => (
           <label key={name} className="block space-y-1">
-            <span className="text-body-sm font-medium">{name}</span>
+            <span className="text-body-sm font-medium">
+              {t(`tenant.settings.regional.fields.${name}` as Parameters<typeof t>[0])}
+            </span>
             <input
               className="w-full rounded-md border border-border-default px-3 py-2"
               {...form.register(name)}
@@ -119,7 +121,7 @@ export default function RegionalSettingsPage() {
                     );
                   }}
                 />
-                {locale.label}
+                {t(`tenant.settings.regional.locales.${locale.labelKey}` as Parameters<typeof t>[0])}
               </label>
             ))}
           </div>
@@ -129,8 +131,8 @@ export default function RegionalSettingsPage() {
             {t('tenant.settings.regional.workingWeekPattern')}
           </legend>
           <div className="flex flex-wrap gap-3">
-            {WEEKDAYS.map((day, index) => (
-              <label key={day} className="flex items-center gap-2 text-body-sm">
+            {WEEKDAY_KEYS.map((dayKey, index) => (
+              <label key={dayKey} className="flex items-center gap-2 text-body-sm">
                 <input
                   type="checkbox"
                   checked={Boolean(workingWeekPattern[index])}
@@ -140,14 +142,14 @@ export default function RegionalSettingsPage() {
                     form.setValue('workingWeekPattern', next, { shouldDirty: true });
                   }}
                 />
-                {day}
+                {t(`tenant.settings.regional.weekdays.${dayKey}` as Parameters<typeof t>[0])}
               </label>
             ))}
           </div>
         </fieldset>
         <div dir="rtl" className="rounded-md border border-dashed border-border-default p-3">
           <p className="text-caption text-text-secondary">{t('tenant.settings.regional.rtlPreview')}</p>
-          <p className="text-body-md">آپ کا ٹیننٹ مقامی ترتیبات کے ساتھ تیار ہے۔</p>
+          <p className="text-body-md">{t('tenant.settings.regional.rtlPreviewSample')}</p>
         </div>
         {mutation.isSuccess ? (
           <p className="text-body-sm text-status-success">{t('tenant.settings.regional.saved')}</p>

@@ -19,6 +19,8 @@ describe('Tenant Admin permissions catalogue', () => {
     expect(TENANT_ADMIN_PERMISSIONS.SESSION_REVOKE).toBe('revoke:session:tenant');
     expect(TENANT_ADMIN_PERMISSIONS.AUDIT_READ).toBe('read:audit_event:tenant');
     expect(TENANT_ADMIN_PERMISSIONS.UPGRADE_REQUEST).toBe('request:upgrade:tenant');
+    expect(TENANT_ADMIN_PERMISSIONS.ROLE_ASSIGNMENT_READ).toBe('read:role_assignment:tenant');
+    expect(TENANT_ADMIN_PERMISSIONS.ROLE_ASSIGNMENT_MANAGE).toBe('manage:role_assignment:tenant');
     expect(TENANT_ADMIN_PERMISSION_CODES.length).toBeGreaterThan(10);
   });
 

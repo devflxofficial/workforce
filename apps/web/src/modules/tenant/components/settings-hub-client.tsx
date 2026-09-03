@@ -17,12 +17,12 @@ const HREF_BY_KEY: Record<string, string | null> = {
   branding: ROUTES.TENANT.SETTINGS_BRANDING,
   modules: ROUTES.TENANT.SETTINGS_MODULES,
   security: ROUTES.TENANT.SETTINGS_SECURITY,
-  subscription: ROUTES.TENANT.SETTINGS_SUBSCRIPTION,
+  subscription: ROUTES.TENANT.SUBSCRIPTION,
+  integrations: ROUTES.TENANT.INTEGRATIONS.ROOT,
   leave: null,
   payroll: null,
   workflows: null,
   notifications: null,
-  integrations: null,
 };
 
 export function SettingsHubClient() {
@@ -120,6 +120,36 @@ export function SettingsHubClient() {
           <div className="rounded-lg border border-border-default bg-surface-card p-4 shadow-elevation-1">
             <h2 className="text-title-sm font-semibold text-text-primary">
               {t('tenant.settings.categories.sessions')}
+            </h2>
+          </div>
+        </Link>
+        <Link
+          href={ROUTES.TENANT.SETTINGS_CUSTOM_FIELDS}
+          className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue-600"
+        >
+          <div className="rounded-lg border border-border-default bg-surface-card p-4 shadow-elevation-1">
+            <h2 className="text-title-sm font-semibold text-text-primary">
+              {t('tenant.settings.categories.customFields')}
+            </h2>
+          </div>
+        </Link>
+        <Link
+          href={ROUTES.TENANT.SETTINGS_HOLIDAY_CALENDAR}
+          className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue-600"
+        >
+          <div className="rounded-lg border border-border-default bg-surface-card p-4 shadow-elevation-1">
+            <h2 className="text-title-sm font-semibold text-text-primary">
+              {t('tenant.settings.categories.holidayCalendar')}
+            </h2>
+          </div>
+        </Link>
+        <Link
+          href={ROUTES.TENANT.SETTINGS_PAYROLL_CALENDAR}
+          className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue-600"
+        >
+          <div className="rounded-lg border border-border-default bg-surface-card p-4 shadow-elevation-1">
+            <h2 className="text-title-sm font-semibold text-text-primary">
+              {t('tenant.settings.categories.payrollCalendar')}
             </h2>
           </div>
         </Link>

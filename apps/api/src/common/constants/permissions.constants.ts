@@ -332,6 +332,8 @@ export const TENANT_ADMIN_PERMISSIONS = {
   SESSION_READ: 'read:session:tenant',
   SESSION_REVOKE: 'revoke:session:tenant',
   AUDIT_READ: 'read:audit_event:tenant',
+  API_CLIENT_READ: 'read:api_client:tenant',
+  API_CLIENT_MANAGE: 'manage:api_client:tenant',
 } as const;
 
 export type TenantAdminPermission =
@@ -340,6 +342,37 @@ export type TenantAdminPermission =
 export const TENANT_ADMIN_PERMISSION_CODES: TenantAdminPermission[] = Object.values(
   TENANT_ADMIN_PERMISSIONS,
 );
+
+/** Operational read access for Tenant Admin §7.2 nav + module hubs (API still enforces write separately). */
+export const TENANT_ADMIN_CONSOLE_READ_PERMISSION_CODES: string[] = [
+  ORGANISATION_PERMISSIONS.ORG_OVERVIEW_READ,
+  EMPLOYEE_PERMISSIONS.EMPLOYEE_READ,
+  ATTENDANCE_PERMISSIONS.RECORD_READ,
+  LEAVE_PERMISSIONS.REQUEST_READ,
+  LEAVE_PERMISSIONS.REQUEST_APPROVE,
+  PAYROLL_PERMISSIONS.READ,
+  WORKFLOW_PERMISSIONS.INBOX_READ,
+  REPORT_PERMISSIONS.READ,
+  TENANT_INTEGRATION_PERMISSIONS.READ,
+  TENANT_INTEGRATION_PERMISSIONS.MANAGE,
+];
+
+/**
+ * Department Manager — team-scoped operational permissions (not tenant-wide HR admin).
+ * Used by the dev demo seed; managers rely on reporting-line checks for data scope.
+ */
+export const DEPARTMENT_MANAGER_PERMISSION_CODES: string[] = [
+  EMPLOYEE_PERMISSIONS.EMPLOYEE_READ_DEPT,
+  ATTENDANCE_PERMISSIONS.RECORD_READ,
+  ATTENDANCE_PERMISSIONS.EXCEPTION_READ,
+  LEAVE_PERMISSIONS.TYPE_READ,
+  LEAVE_PERMISSIONS.REQUEST_READ,
+  LEAVE_PERMISSIONS.REQUEST_APPROVE,
+  WORKFLOW_PERMISSIONS.INBOX_READ,
+  REPORT_PERMISSIONS.READ,
+  SHIFT_PERMISSIONS.READ,
+  ROSTER_PERMISSIONS.READ,
+];
 
 /** HR Console Scope A — full M03–M07 + lifecycle permission set for HR Manager. */
 export const HR_CONSOLE_PERMISSION_CODES: string[] = [

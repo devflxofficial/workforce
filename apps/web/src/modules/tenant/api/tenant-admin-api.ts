@@ -55,12 +55,37 @@ export interface SetupStatus {
   goLiveReady: boolean;
   completed: number;
   total: number;
+  trialExpired?: boolean;
+  supportIntervention?: boolean;
+  summary?: {
+    seatUsage: { active: number; limit: number | null; percent: number | null };
+    policyCount: number;
+    policyTarget?: number;
+    readinessCount: number;
+    readinessTarget?: number;
+    remainingCount?: number;
+    nextStepKey: string | null;
+    nextStepHref: string | null;
+    nextStepLabel?: string | null;
+  };
+  implementationCalendar?: Array<{
+    key: string;
+    labelKey: string;
+    percent: number;
+    stepKeys: string[];
+    stepStatuses: Record<string, string>;
+  }>;
   steps: Array<{
+    sequence?: number;
     key: string;
     required: boolean;
     status: string;
     href: string | null;
-    blockedReason: string | null;
+    actionKey: string | null;
+    ownerUserId?: string | null;
+    ownerDisplayName?: string;
+    requirements?: string[];
+    blockedReason: { messageKey: string; message: string } | null;
   }>;
   categories: Array<{
     key: string;
@@ -109,7 +134,13 @@ export interface TenantUsage {
   seatLimit: number | null;
   storageUsedBytes: number;
   apiCallsMonth: number;
-  warnings: { approachingSeatLimit: boolean; seatLimitReached: boolean };
+  integrationEventVolume: number;
+  exportVolume: number;
+  warnings: {
+    approachingSeatLimit: boolean;
+    seatLimitReached: boolean;
+    overagePolicyKey?: string | null;
+  };
 }
 
 export interface UpgradeRequest {
@@ -120,11 +151,70 @@ export interface UpgradeRequest {
   requestedPlanName?: string | null;
   planCode?: string | null;
   planName?: string | null;
+  additionalSeats?: number | null;
+  additionalModuleKeys?: string[] | null;
+  requestedEffectiveDate?: string | null;
+  contactPersonName?: string | null;
+  businessReason?: string | null;
   note?: string | null;
   billingContactEmail?: string | null;
   createdAt: string;
   decidedAt?: string | null;
   decisionNote?: string | null;
+}
+
+export interface PlanComparison {
+  currentPlanId: string | null;
+  currentPlanCode: string | null;
+  features: string[];
+  plans: Array<{
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    isCurrent: boolean;
+    featureStates: Record<string, string>;
+  }>;
+}
+
+export interface AuditSummary {
+  windowDays: number;
+  widgets: {
+    sensitiveChanges: number;
+    roleChanges: number;
+    payrollActions: number;
+    attendanceChanges: number;
+    failedLogins: number;
+    supportAccess: number;
+    dataExports: number;
+  };
+}
+
+export interface AuditEventDetail {
+  id: string;
+  tenantId: string | null;
+  actorId: string;
+  actorType: string;
+  actorEmail: string | null;
+  module: string;
+  action: string;
+  resourceType: string;
+  resourceId: string | null;
+  before: unknown;
+  after: unknown;
+  metadata: unknown;
+  ipAddress: string | null;
+  userAgent: string | null;
+  severity: string;
+  occurredAt: string;
+  correlationId: string;
+  relatedEvents: Array<{
+    id: string;
+    action: string;
+    module: string;
+    severity: string;
+    occurredAt: string;
+  }>;
 }
 
 export interface SecurityPolicy {
@@ -231,6 +321,10 @@ export const tenantAdminApi = {
     apiClient.get<ApiSuccessResponse<TenantModuleCatalogue>>(`${BASE}/modules`).then((r) => r.data),
   getSetupStatus: () =>
     apiClient.get<ApiSuccessResponse<SetupStatus>>(`${BASE}/setup-status`).then((r) => r.data),
+  assignSetupOwners: (assignments: Record<string, string>) =>
+    apiClient
+      .patch<ApiSuccessResponse<SetupStatus>>(`${BASE}/setup-status/owners`, { assignments })
+      .then((r) => r.data),
   getSubscription: () =>
     apiClient.get<ApiSuccessResponse<TenantSubscription>>(`${BASE}/subscription`).then((r) => r.data),
   getUsage: () =>
@@ -238,6 +332,11 @@ export const tenantAdminApi = {
   createUpgradeRequest: (payload: {
     requestedPlanId?: string;
     requestedPlanKey?: string;
+    additionalSeats?: number;
+    additionalModuleKeys?: string[];
+    requestedEffectiveDate?: string;
+    contactPersonName?: string;
+    businessReason?: string;
     note?: string;
     billingContactEmail?: string;
   }) =>
@@ -246,6 +345,8 @@ export const tenantAdminApi = {
       .then((r) => r.data),
   listUpgradeRequests: () =>
     apiClient.get<ApiSuccessResponse<UpgradeRequest[]>>(`${BASE}/upgrade-requests`).then((r) => r.data),
+  comparePlans: () =>
+    apiClient.get<ApiSuccessResponse<PlanComparison>>(`${BASE}/plans/compare`).then((r) => r.data),
   getSecurityPolicy: () =>
     apiClient
       .get<ApiSuccessResponse<SecurityPolicy>>(`${BASE}/security-policy`)
@@ -298,12 +399,22 @@ export const tenantAdminApi = {
     pageSize?: number;
     module?: string;
     action?: string;
+    actorId?: string;
+    severity?: string;
     fromDate?: string;
     toDate?: string;
   }) =>
     apiClient
       .get<ApiSuccessResponse<AuditEventRow[]>>('/audit-events', { params })
       .then((r) => r.data),
+  getAuditSummary: () =>
+    apiClient.get<ApiSuccessResponse<AuditSummary>>('/audit-events/summary').then((r) => r.data),
   getAuditEvent: (id: string) =>
-    apiClient.get(`/audit-events/${id}`).then((r) => r.data),
+    apiClient.get<ApiSuccessResponse<AuditEventDetail>>(`/audit-events/${id}`).then((r) => r.data),
+  assignRole: (roleId: string, userId: string) =>
+    apiClient.post(`/roles/${roleId}/assign`, { userId }).then((r) => r.data),
+  revokeRole: (roleId: string, userId: string) =>
+    apiClient.delete(`/roles/${roleId}/assign/${userId}`).then((r) => r.data),
+  getUserRoles: (userId: string) =>
+    apiClient.get(`/users/${userId}/roles`).then((r) => r.data),
 };

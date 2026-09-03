@@ -8,14 +8,14 @@ import type { CurrentUserContext } from '../../authentication/interfaces/current
 import { TENANT_INTEGRATION_PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { AppException } from '../../../common/exceptions/app.exception';
 import { ERROR_CODES } from '../../../common/constants/error-codes.constants';
-import { IntegrationsCatalogueService } from '../services/integrations-catalogue.service';
+import { TenantIntegrationService } from '../services/tenant-integration.service';
 
 @ApiTags('integrations')
 @ApiBearerAuth()
 @Controller('integrations')
 @UseGuards(JwtAuthGuard, PermissionGuard)
 export class IntegrationsController {
-  constructor(private readonly integrations: IntegrationsCatalogueService) {}
+  constructor(private readonly integrations: TenantIntegrationService) {}
 
   @Get()
   @RequirePermissions(
@@ -24,7 +24,7 @@ export class IntegrationsController {
   )
   @ApiOperation({ summary: 'List tenant integration catalogue + config status' })
   list(@CurrentUser() user: CurrentUserContext) {
-    return this.integrations.list(this.tenant(user));
+    return this.integrations.listDirectory(this.tenant(user));
   }
 
   private tenant(user: CurrentUserContext): string {

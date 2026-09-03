@@ -11,11 +11,21 @@ import {
   useUpsertTenantBranding,
 } from '../../../../modules/tenant/hooks/use-tenant-admin';
 
-const LOGO_UPLOADS = [
-  { kind: 'logo', field: 'logoUrl', label: 'Logo' },
-  { kind: 'loginLogo', field: 'loginLogoUrl', label: 'Login logo' },
-  { kind: 'favicon', field: 'faviconUrl', label: 'Favicon' },
+const BRANDING_FIELDS = [
+  'logoUrl',
+  'loginLogoUrl',
+  'faviconUrl',
+  'primaryColor',
+  'secondaryColor',
+  'applicationName',
+  'emailSenderName',
 ] as const;
+
+const LOGO_UPLOADS = [
+  { kind: 'logo' as const, field: 'logoUrl' as const, labelKey: 'logo' },
+  { kind: 'loginLogo' as const, field: 'loginLogoUrl' as const, labelKey: 'loginLogo' },
+  { kind: 'favicon' as const, field: 'faviconUrl' as const, labelKey: 'favicon' },
+];
 
 function toUploadPath(url?: string | null) {
   if (!url) return '';
@@ -56,6 +66,8 @@ export default function BrandingSettingsPage() {
   }, [data, form]);
 
   const values = form.watch();
+  const defaultAppName = t('tenant.settings.branding.defaultAppName');
+
   const handleLogoUpload = async (
     file: File | undefined,
     kind: 'logo' | 'loginLogo' | 'favicon',
@@ -94,19 +106,11 @@ export default function BrandingSettingsPage() {
             await mutation.mutateAsync(v);
           })}
         >
-          {(
-            [
-              'logoUrl',
-              'loginLogoUrl',
-              'faviconUrl',
-              'primaryColor',
-              'secondaryColor',
-              'applicationName',
-              'emailSenderName',
-            ] as const
-          ).map((name) => (
+          {BRANDING_FIELDS.map((name) => (
             <label key={name} className="block space-y-1">
-              <span className="text-body-sm font-medium">{name}</span>
+              <span className="text-body-sm font-medium">
+                {t(`tenant.settings.branding.fields.${name}` as Parameters<typeof t>[0])}
+              </span>
               <input
                 className="w-full rounded-md border border-border-default px-3 py-2"
                 {...form.register(name)}
@@ -115,9 +119,11 @@ export default function BrandingSettingsPage() {
           ))}
           <div className="space-y-3 rounded-md border border-dashed border-border-default p-3">
             <p className="text-body-sm font-medium">{t('tenant.settings.branding.uploads')}</p>
-            {LOGO_UPLOADS.map(({ kind, field, label }) => (
+            {LOGO_UPLOADS.map(({ kind, field, labelKey }) => (
               <label key={kind} className="block space-y-1">
-                <span className="text-body-sm font-medium">{label}</span>
+                <span className="text-body-sm font-medium">
+                  {t(`tenant.settings.branding.logos.${labelKey}` as Parameters<typeof t>[0])}
+                </span>
                 <input
                   type="file"
                   accept="image/*"
@@ -166,7 +172,7 @@ export default function BrandingSettingsPage() {
               />
             ) : null}
             <p className="mt-2 text-title-md font-bold" style={{ color: values.primaryColor }}>
-              {values.applicationName || 'Workforce OS'}
+              {values.applicationName || defaultAppName}
             </p>
           </div>
           <div className="rounded-lg border border-border-default p-4" style={{ background: values.primaryColor }}>
@@ -179,7 +185,7 @@ export default function BrandingSettingsPage() {
               />
             ) : null}
             <p className="text-body-md font-semibold text-white">
-              {values.emailSenderName || values.applicationName || 'Workforce OS'}
+              {values.emailSenderName || values.applicationName || defaultAppName}
             </p>
           </div>
           <div className="rounded-lg border border-border-default p-4">
@@ -194,7 +200,7 @@ export default function BrandingSettingsPage() {
               />
             ) : null}
             <p className="font-semibold" style={{ color: values.secondaryColor }}>
-              {values.applicationName || 'Workforce OS'}
+              {values.applicationName || defaultAppName}
             </p>
           </div>
         </div>

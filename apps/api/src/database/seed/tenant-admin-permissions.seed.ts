@@ -3,7 +3,7 @@
  * Upserts colon-form permissions and attaches them to the Tenant Admin system role.
  */
 import type { Prisma, PrismaClient } from '@prisma/client';
-import { TENANT_ADMIN_PERMISSION_CODES } from '../../common/constants/permissions.constants';
+import { TENANT_ADMIN_PERMISSION_CODES, TENANT_ADMIN_CONSOLE_READ_PERMISSION_CODES } from '../../common/constants/permissions.constants';
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 
@@ -47,8 +47,9 @@ export async function seedTenantAdminPermissions(
   prisma: DbClient,
   options?: { tenantId?: string },
 ): Promise<{ permissions: string[]; rolesUpdated: number }> {
+  const codes = [...TENANT_ADMIN_PERMISSION_CODES, ...TENANT_ADMIN_CONSOLE_READ_PERMISSION_CODES];
   const rows = [];
-  for (const code of TENANT_ADMIN_PERMISSION_CODES) {
+  for (const code of codes) {
     rows.push(await ensurePermission(prisma, code));
   }
   const permissionIds = rows.map((r) => r.id);
@@ -66,7 +67,7 @@ export async function seedTenantAdminPermissions(
   }
 
   return {
-    permissions: [...TENANT_ADMIN_PERMISSION_CODES],
+    permissions: [...codes],
     rolesUpdated: roles.length,
   };
 }

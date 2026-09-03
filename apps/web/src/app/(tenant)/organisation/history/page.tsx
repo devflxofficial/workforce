@@ -1,10 +1,12 @@
+import { getTranslations } from 'next-intl/server';
 import { HistoryPageClient } from './history-page-client';
 
-export default function OrganisationHistoryPage() {
+export default async function OrganisationHistoryPage() {
+  const t = await getTranslations();
   return (
     <HistoryPageClient
-      title="Organisation history"
-      description="Track structural changes over time."
+      title={t('organisation.history.title')}
+      description={t('organisation.history.description')}
     />
   );
 }
